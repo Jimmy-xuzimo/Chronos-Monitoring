@@ -1,4 +1,4 @@
-<img width="4400" height="2724" alt="image" src="https://github.com/user-attachments/assets/14fbf411-ab3c-4640-b7ed-1b8eb7dbc0b2" />Chronos 服务器监控面板
+Chronos 服务器监控面板
 
 **Chronos** 是一款专为 Linux 系统打造的超现代、工业科幻风格服务器监控仪表盘。
 
@@ -200,5 +200,6 @@ const API_URL = '/api/stats';
 ## 📄 开源协议
 
 本项目采用 MIT 协议开源。您可以自由地修改、分发或用于商业用途。
+
 
 
