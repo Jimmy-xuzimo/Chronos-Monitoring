@@ -1,4 +1,4 @@
-Chronos 服务器监控面板
+<img width="4400" height="2724" alt="image" src="https://github.com/user-attachments/assets/14fbf411-ab3c-4640-b7ed-1b8eb7dbc0b2" />Chronos 服务器监控面板
 
 **Chronos** 是一款专为 Linux 系统打造的超现代、工业科幻风格服务器监控仪表盘。
 
@@ -6,7 +6,7 @@ Chronos 服务器监控面板
 
 在技术架构上，它追求极致的轻量化与响应速度。后端采用 Python 标准库与轻量级框架，资源占用极低；前端采用响应式布局，在桌面端锁定全屏无滚动条，在移动端自动适配为竖向流式布局，确保在任何设备上都能完美呈现。
 
-![Uploading image.png…]()
+<img width="4400" height="2722" alt="image" src="https://github.com/user-attachments/assets/501d3d15-5be0-43ed-bca5-293eb9863216" />
 
 ## ✨ 核心功能
 
@@ -200,4 +200,5 @@ const API_URL = '/api/stats';
 ## 📄 开源协议
 
 本项目采用 MIT 协议开源。您可以自由地修改、分发或用于商业用途。
+
 
