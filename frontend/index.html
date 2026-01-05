@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHRONOS MONITOR</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        mono: ['"Share Tech Mono"', 'monospace'],
+                        pixel: ['"VT323"', 'monospace']
+                    },
+                    colors: {
+                        mech: {
+                            bg: '#e0e5ec',       
+                            text: '#2b3a42',     
+                            orange: '#ff4500',   
+                            border: '#cfd8dc'
+                        }
+                    },
+                    screens: { 'lg': '1024px' }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #e0e5ec; color: #2b3a42; font-family: 'Share Tech Mono', monospace; }
+        @media (min-width: 1024px) { body { height: 100vh; overflow: hidden; } }
+        @media (max-width: 1023px) { body { height: auto; overflow-y: auto; } }
+        
+        .tech-panel {
+            background: rgba(238, 241, 245, 0.95);
+            border: 1px solid #cfd8dc;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.03);
+            display: flex; flex-direction: column;
+            overflow: hidden; 
+        }
+        .tech-border { border: 1px solid #2b3a42; padding: 2px; height: 100%; background: #e0e5ec; display: flex; flex-direction: column; }
+        .panel-header {
+            background: rgba(43, 58, 66, 0.05); padding: 4px 8px; font-size: 10px;
+            border-bottom: 1px solid #2b3a42; display: flex; justify-content: space-between; align-items: center;
+            letter-spacing: 1px; text-transform: uppercase; font-weight: bold; color: #ff4500;
+        }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #ff4500; border-radius: 2px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+        .mac-btn { width: 8px; height: 8px; border-radius: 50%; margin-left: 6px; }
+        .bar-anim { transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .pixel-font { font-family: 'VT323', monospace; line-height: 1; }
+        
+        /* Container Query for Adaptive Clock */
+        .clock-wrapper { container-type: inline-size; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .dynamic-time { font-size: 22cqw; line-height: 0.9; }
+        .dynamic-date { font-size: 6cqw; margin-bottom: 2cqw; }
+    </style>
+</head>
+<body class="p-4 flex flex-col gap-4 max-w-[2560px] mx-auto w-full">
+
+    <!-- Row 1 -->
+    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:h-[30%] shrink-0">
+        <div class="lg:col-span-4 tech-panel p-1">
+            <div class="tech-border">
+                <div class="panel-header"><span class="text-mech-text">TIME</span><div class="w-2 h-2 rounded-full bg-mech-orange animate-pulse"></div></div>
+                <div class="flex-1 relative px-2 overflow-hidden">
+                    <div class="absolute inset-0 opacity-5 pointer-events-none" style="background: repeating-linear-gradient(0deg, transparent, transparent 2px, #000 3px);"></div>
+                    <div class="clock-wrapper">
+                        <div id="date-full" class="dynamic-date text-mech-orange/80 font-bold tracking-widest z-10">LOADING...</div>
+                        <div id="clock-time" class="dynamic-time pixel-font text-mech-text tracking-widest drop-shadow-sm z-10">00:00:00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="lg:col-span-5 tech-panel p-4">
+            <div class="flex justify-between items-center border-b border-mech-border pb-2 mb-4">
+                <span class="font-bold text-mech-orange text-xs tracking-wider">SYSTEM OVERVIEW</span>
+                <span class="px-2 py-0.5 bg-mech-orange/10 text-mech-orange text-[10px] border border-mech-orange/20 rounded">ONLINE</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-y-6 gap-x-4 text-xs">
+                <div><div class="opacity-50 mb-1">HOSTNAME</div><div id="hostname" class="font-bold uppercase">--</div></div>
+                <div><div class="opacity-50 mb-1">KERNEL</div><div id="kernel" class="font-bold truncate">--</div></div>
+                <div><div class="opacity-50 mb-1">BOOT TIME</div><div id="boot-time" class="font-bold">--</div></div>
+                <div class="col-span-2 md:col-span-1">
+                    <div class="opacity-50 mb-1">PUBLIC IP</div>
+                    <div id="server-ip" class="font-bold text-mech-orange lg:truncate lg:max-w-[140px] break-all cursor-help relative z-20" title="Checking...">Checking...</div>
+                </div>
+                <div><div class="opacity-50 mb-1">PROCESSES</div><div id="procs" class="font-bold">--</div></div>
+                <div class="col-span-2 md:col-span-1"><div class="opacity-50 mb-1">LOAD AVG</div><div id="load-avg" class="font-bold">--</div></div>
+            </div>
+        </div>
+        <div class="lg:col-span-3 tech-panel p-4 flex flex-col justify-center gap-5">
+            <div><div class="flex justify-between text-xs font-bold mb-1"><span>CPU TEMP</span><span id="temp-cpu" class="text-mech-orange">--°C</span></div><div class="w-full h-1.5 bg-gray-300"><div id="bar-cpu-temp" class="bg-mech-orange h-full bar-anim" style="width: 0%"></div></div></div>
+            <div><div class="flex justify-between text-xs font-bold mb-1"><span>NVME TEMP</span><span id="temp-nvme">--°C</span></div><div class="w-full h-1.5 bg-gray-300"><div id="bar-nvme-temp" class="bg-mech-text h-full bar-anim" style="width: 0%"></div></div></div>
+            <div><div class="flex justify-between text-xs font-bold mb-1"><span>WIFI TEMP</span><span id="temp-wifi">--°C</span></div><div class="w-full h-1.5 bg-gray-300"><div id="bar-wifi-temp" class="bg-gray-500 h-full bar-anim" style="width: 0%"></div></div></div>
+        </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-4 lg:h-[32%] shrink-0">
+        <div class="lg:col-span-8 tech-panel p-4 flex flex-col">
+            <div class="flex justify-between text-xs mb-2"><span class="font-bold text-mech-orange">CPU LOAD HISTORY</span><span id="cpu-val" class="font-bold text-lg pixel-font">0%</span></div>
+            <div class="flex-1 relative min-h-0 w-full"><canvas id="cpuChart"></canvas></div>
+        </div>
+        <div class="lg:col-span-4 tech-panel p-5 flex flex-col justify-center gap-6">
+            <div class="font-bold text-mech-orange text-xs border-b border-mech-border pb-2">MEMORY STATUS</div>
+            <div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold">RAM</span><span class="opacity-60 font-mono"><span id="mem-used">0</span> / <span id="mem-total">0</span> GB</span></div>
+                <div class="w-full h-5 bg-gray-200 border border-gray-300 relative"><div id="mem-bar" class="h-full bg-mech-orange bar-anim"></div></div>
+                <div class="text-right text-[10px] mt-1 text-mech-orange font-bold" id="mem-percent">0% USED</div>
+            </div>
+            <div>
+                <div class="flex justify-between text-xs mb-1"><span class="font-bold">SWAP</span><span id="swap-percent" class="opacity-60">0%</span></div>
+                <div class="w-full h-1.5 bg-gray-200"><div id="swap-bar" class="h-full bg-gray-400 bar-anim" style="width: 0%"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="flex flex-col lg:grid lg:grid-cols-12 gap-4 flex-1 min-h-0">
+        <div class="lg:col-span-4 tech-panel p-4 flex flex-col">
+            <div class="flex justify-between text-xs mb-2"><span class="font-bold text-mech-orange">NETWORK I/O</span><div class="flex gap-2 pixel-font text-sm"><span class="text-green-600">↑ <span id="net-up">0</span></span><span class="text-blue-600">↓ <span id="net-down">0</span></span></div></div>
+            <div class="flex-1 relative min-h-0 w-full"><canvas id="netChart"></canvas></div>
+        </div>
+        <div class="lg:col-span-4 tech-panel p-4 flex flex-col">
+            <div class="font-bold text-mech-orange text-xs mb-2">STORAGE I/O & USAGE</div>
+            <div class="flex-1 overflow-y-auto p-0 custom-scroll">
+                <table class="w-full text-left border-collapse">
+                    <thead class="text-[9px] opacity-50 border-b border-mech-border"><tr><th class="py-1 font-normal">MOUNT</th><th class="py-1 font-normal">SPEED</th><th class="py-1 text-right font-normal">USAGE</th></tr></thead>
+                    <tbody id="disk-list" class="text-[10px] font-mono"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="lg:col-span-4 tech-panel bg-[#1e1e1e] border-none text-gray-300 flex flex-col">
+            <div class="bg-[#2d2d2d] px-3 py-2 flex justify-between items-center border-b border-[#3d3d3d] shrink-0">
+                <div class="text-[10px] font-bold opacity-50">TERM://SYSTEM_EVENTS</div>
+                <div class="flex"><div class="mac-btn bg-[#ff5f56]"></div><div class="mac-btn bg-[#ffbd2e]"></div><div class="mac-btn bg-[#27c93f]"></div></div>
+            </div>
+            <div id="term-box" class="flex-1 p-3 overflow-y-auto custom-scroll text-[10px] font-mono leading-relaxed text-[#4ade80]">
+                <div class="opacity-50"># Initializing System Watcher...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION
+        // ============================================
+        // If hosting via Nginx/WAF (recommended):
+        const API_URL = '/api/stats';
+        
+        // If testing locally without reverse proxy:
+        // const API_URL = 'http://YOUR_SERVER_IP:5000/api/stats';
+        // ============================================
+
+        const log=(m,t='info')=>{const d=new Date().toLocaleTimeString('en-GB');const e=document.createElement('div');let c='text-[#4ade80]';if(t==='err')c='text-[#f87171]';e.innerHTML=`<span class="opacity-40">[${d}]</span> <span class="${c}">${m}</span>`;const b=document.getElementById('term-box');b.appendChild(e);b.scrollTop=b.scrollHeight;if(b.children.length>100)b.removeChild(b.firstChild);};
+        const fmt=(b)=>{if(!b)return'0 B';const s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(1024));return(b/Math.pow(1024,i)).toFixed(1)+s[i];};
+        
+        Chart.defaults.font.family='"Share Tech Mono", monospace';Chart.defaults.color='#888';
+        const chartOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{display:false},y:{display:true,border:{display:false},grid:{color:'rgba(0,0,0,0.03)'},ticks:{font:{size:9},maxTicksLimit:5}}},elements:{point:{radius:0},line:{borderWidth:1.5,tension:0.4}}};
+        const cpuChart=new Chart(document.getElementById('cpuChart'),{type:'line',data:{labels:Array(60).fill(''),datasets:[{data:Array(60).fill(0),borderColor:'#ff4500',backgroundColor:'rgba(255,69,0,0.05)',fill:true}]},options:{...chartOpts,scales:{y:{min:0,max:100}}}});
+        const netChart=new Chart(document.getElementById('netChart'),{type:'line',data:{labels:Array(60).fill(''),datasets:[{borderColor:'#16a34a',data:Array(60).fill(0)},{borderColor:'#2563eb',data:Array(60).fill(0)}]},options:chartOpts});
+
+        async function update(){
+            try{
+                const r=await fetch(API_URL);if(!r.ok)throw new Error();const d=await r.json();
+                document.getElementById('hostname').innerText=d.system.hostname;
+                document.getElementById('kernel').innerText=d.system.kernel;
+                document.getElementById('boot-time').innerText=d.system.boot_time.split(' ')[1];
+                document.getElementById('procs').innerText=d.system.procs;
+                document.getElementById('load-avg').innerText=d.system.load.map(x=>x.toFixed(2)).join('/');
+                const ip=document.getElementById('server-ip');ip.innerText=d.system.public_ip;ip.title=d.system.public_ip;
+                document.getElementById('temp-cpu').innerText=(d.temp.cpu||0)+'°C';document.getElementById('bar-cpu-temp').style.width=Math.min(d.temp.cpu||0,100)+'%';
+                document.getElementById('temp-nvme').innerText=(d.temp.nvme||0)+'°C';document.getElementById('bar-nvme-temp').style.width=Math.min(d.temp.nvme||0,100)+'%';
+                document.getElementById('temp-wifi').innerText=(d.temp.wifi||0)+'°C';document.getElementById('bar-wifi-temp').style.width=Math.min(d.temp.wifi||0,100)+'%';
+                document.getElementById('cpu-val').innerText=d.cpu.total+'%';cpuChart.data.datasets[0].data.push(d.cpu.total);cpuChart.data.datasets[0].data.shift();cpuChart.update();
+                document.getElementById('net-up').innerText=fmt(d.net.tx)+'/s';document.getElementById('net-down').innerText=fmt(d.net.rx)+'/s';netChart.data.datasets[0].data.push(d.net.tx);netChart.data.datasets[0].data.shift();netChart.data.datasets[1].data.push(d.net.rx);netChart.data.datasets[1].data.shift();netChart.update();
+                const uGB=(d.mem.used/1e9).toFixed(1),tGB=(d.mem.total/1e9).toFixed(1);
+                document.getElementById('mem-used').innerText=uGB;document.getElementById('mem-total').innerText=tGB;
+                document.getElementById('mem-percent').innerText=d.mem.percent+'% USED';document.getElementById('mem-bar').style.width=d.mem.percent+'%';
+                document.getElementById('swap-percent').innerText=d.mem.swap+'%';document.getElementById('swap-bar').style.width=d.mem.swap+'%';
+                document.getElementById('disk-list').innerHTML=d.disks.map(k=>{const r=k.io?fmt(k.io.r):'0 B',w=k.io?fmt(k.io.w):'0 B';return `<tr class="border-b border-mech-border/50 hover:bg-white/50 transition"><td class="py-2 pl-1 font-bold truncate max-w-[80px]" title="${k.mount}">${k.mount}</td><td class="py-2 opacity-80 whitespace-nowrap"><span class="text-green-600">R:${r}/s</span><br><span class="text-blue-600">W:${w}/s</span></td><td class="py-2 text-right pr-1"><div class="flex items-center justify-end gap-2"><span class="text-[9px]">${k.percent}%</span><div class="w-10 h-1 bg-gray-300"><div class="h-full bg-mech-orange" style="width:${k.percent}%"></div></div></div><div class="opacity-50 text-[9px]">${fmt(k.total)}</div></td></tr>`}).join('');
+                if(Math.random()>0.85){const l=[`Kernel Load: ${d.system.load[0]}`,`Net Packet: ${fmt(d.net.tx)}`,`Disk I/O Sync... OK`];log(l[Math.floor(Math.random()*l.length)]);}
+            }catch(e){log('Backend Link Lost...','err');}
+        }
+        function updateClock(){
+            const n=new Date(),p=x=>String(x).padStart(2,'0');
+            document.getElementById('clock-time').innerText=`${p(n.getHours())}:${p(n.getMinutes())}:${p(n.getSeconds())}`;
+            const d=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+            document.getElementById('date-full').innerText=`${n.getFullYear()}.${p(n.getMonth()+1)}.${p(n.getDate())} ${d[n.getDay()]}`;
+        }
+        setInterval(updateClock,1000);updateClock();setInterval(update,2000);
+    </script>
+</body>
+</html>

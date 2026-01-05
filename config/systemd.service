@@ -1,0 +1,22 @@
+[Unit]
+Description=Chronos Monitoring Dashboard Backend
+After=network.target
+
+[Service]
+# Run as a simple background process
+Type=simple
+# User to run the script (change if necessary)
+User=root
+
+# !!! CHANGE THIS PATH to your actual backend folder !!!
+WorkingDirectory=/opt/chronos/backend
+
+# !!! CHANGE THIS PATH to your python and script path !!!
+ExecStart=/usr/bin/python3 /opt/chronos/backend/monitor.py
+
+# Restart automatically if it crashes
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
