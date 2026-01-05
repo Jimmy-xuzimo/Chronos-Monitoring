@@ -1,396 +1,200 @@
-\# Chronos Monitoring Dashboard
+Chronos 服务器监控面板
 
+**Chronos** 是一款专为 Linux 系统打造的超现代、工业科幻风格服务器监控仪表盘。
 
+它不仅仅是一个数据展示工具，更是一种视觉体验。设计灵感源自硬核科幻与赛博朋克美学，采用工程灰与警示橙的高对比度配色，配合像素风格的数字时钟与平滑的数据曲线，让您的服务器监控界面像飞船控制台一样精密且美观。
 
-An ultra-modern, industrial sci-fi style server monitoring dashboard.
+在技术架构上，它追求极致的轻量化与响应速度。后端采用 Python 标准库与轻量级框架，资源占用极低；前端采用响应式布局，在桌面端锁定全屏无滚动条，在移动端自动适配为竖向流式布局，确保在任何设备上都能完美呈现。
 
-Features a responsive design that locks to the viewport on desktops and scrolls on mobile, with real-time data visualization via a lightweight Python backend.
+## ✨ 核心功能
 
+*   **实时核心监控**：毫秒级刷新 CPU 使用率、内存占用、交换空间（Swap）及系统负载。
+*   **网络流量分析**：实时显示上传/下载速度，绘制平滑的贝塞尔曲线历史趋势图。
+*   **存储系统监测**：自动识别所有挂载的物理硬盘，实时监控每个分区的读写速度（I/O）及容量使用率。
+*   **硬件温度感知**：自动发现并监控 CPU、NVMe 固态硬盘及无线网卡等硬件温度。
+*   **智能网络识别**：自动检测服务器的公网 IP 地址（完美支持 IPv4/IPv6 双栈），鼠标悬停即可查看完整 IP。
+*   **精准系统信息**：显示主机名、内核版本、精确的系统启动时间及活跃进程数。
+*   **自适应布局**：桌面端采用 CSS 容器查询技术实现完美网格对齐，移动端自动切换为易于触摸滑动的布局。
 
+## 📂 建议文件结构
 
-\*\*\[中文说明请向下滚动 (Scroll down for Chinese)]\*\*
+在部署前，建议按照以下结构整理您的文件：
 
-
-
-!\[Preview](https://via.placeholder.com/1200x600.png?text=Preview+Image+Here)
-
-
-
-\## 🎨 Design Philosophy
-
-
-
-\*   \*\*Visual Style\*\*: "Chronos" Industrial / Hard Sci-Fi / Cyberpunk.
-
-\*   \*\*Color Palette\*\*: Engineering Grey (`#e0e5ec`) + Alert Orange (`#ff4500`) + Deep Slate (`#2b3a42`).
-
-\*   \*\*Typography\*\*: `Share Tech Mono` for data and `VT323` for the digital clock.
-
-\*   \*\*Layout\*\*: 
-
-&nbsp;   \*   \*\*Desktop\*\*: Locked 100vh viewport (no external scrollbars), grid layout using CSS Container Queries.
-
-&nbsp;   \*   \*\*Mobile\*\*: Responsive vertical scrolling layout.
-
-
-
-\## ✨ Features
-
-
-
-\*   \*\*Real-time Monitoring\*\*: CPU, Memory, Swap, Network I/O, Disk I/O \& Usage.
-
-\*   \*\*System Info\*\*: Kernel version, Uptime, Load Average, Process count.
-
-\*   \*\*Network\*\*: Auto-detects Public IP (IPv4/IPv6 compatible) with hover-to-reveal.
-
-\*   \*\*Visuals\*\*: Smooth Bezier curve charts (Chart.js), animated progress bars.
-
-\*   \*\*Hardware Sensors\*\*: Monitors CPU, NVMe, and WiFi temperatures (auto-discovery).
-
-
-
-\## 🛠️ Installation
-
-
-
-\### 1. Backend Setup (Python)
-
-
-
-Ensure you have Python 3 installed on your server (Debian/Ubuntu/CentOS).
-
-
-
-```bash
-
-\# 1. Install system dependencies
-
-sudo apt update
-
-sudo apt install python3-pip
-
-
-
-\# 2. Clone the repo
-
-git clone https://github.com/your-username/chronos-monitor.git
-
-cd chronos-monitor/backend
-
-
-
-\# 3. Install Python requirements
-
-pip3 install -r requirements.txt --break-system-packages
-
-
-
-\# 4. Test run
-
-python3 monitor.py
-
-\# Output should say: Running on http://127.0.0.1:5000
-
+```text
+/opt/chronos/
+├── backend/
+│   ├── monitor.py          # Python 后端核心程序
+│   └── requirements.txt    # 依赖库列表
+├── frontend/
+│   └── index.html          # 前端界面文件
+└── config/
+    ├── nginx.conf          # Nginx 反代配置参考
+    └── chronos.service     # 开机自启服务文件
 ```
-
-
-
-\### 2. Auto-start Service (Systemd)
-
-
-
-Use the provided template to create a system service.
-
-
-
-```bash
-
-\# 1. Copy service file
-
-sudo cp ../config/chronos.service /etc/systemd/system/
-
-
-
-\# 2. Edit paths in the file
-
-sudo nano /etc/systemd/system/chronos.service
-
-\# (Make sure WorkingDirectory and ExecStart point to your actual location)
-
-
-
-\# 3. Enable and start
-
-sudo systemctl daemon-reload
-
-sudo systemctl enable chronos.service
-
-sudo systemctl start chronos.service
-
-```
-
-
-
-\### 3. Frontend \& Nginx Proxy (Recommended)
-
-
-
-Since the backend listens on `127.0.0.1:5000` for security, you should use Nginx (or a WAF) to serve the frontend and reverse proxy the API.
-
-
-
-\*\*Step 1: Deploy Frontend\*\*
-
-Copy the `frontend` folder to your web directory (e.g., `/var/www/chronos`).
-
-
-
-\*\*Step 2: Configure Nginx\*\*
-
-Copy the content of `config/nginx.conf` to your Nginx configuration (e.g., `/etc/nginx/sites-available/chronos`).
-
-
-
-\*\*Step 3: Restart Nginx\*\*
-
-```bash
-
-sudo ln -s /etc/nginx/sites-available/chronos /etc/nginx/sites-enabled/
-
-sudo nginx -t
-
-sudo systemctl restart nginx
-
-```
-
-
-
-\### 4. Access
-
-Open your browser and visit your domain (e.g., `http://your-domain.com`). The dashboard should load immediately.
-
-
 
 ---
 
+## 🛠️ 部署指南
 
+请按照以下步骤在您的 Debian/Ubuntu/CentOS 服务器上部署。
 
-\# Chronos 服务器监控面板 (中文说明)
+### 第一步：环境准备与后端部署
 
+确保您的服务器已安装 Python 3。
 
-
-一个超现代的、科幻工业风格的服务器监控面板。
-
-专为 Linux 系统设计，桌面端采用无滚动条的全屏网格布局，移动端自动适配竖向滚动，配合轻量级 Python 后端实现实时数据可视化。
-
-
-
-\## 🎨 设计理念
-
-
-
-\*   \*\*视觉风格\*\*: "Chronos" 工业风 / 硬核科幻 / 赛博朋克。
-
-\*   \*\*配色方案\*\*: 工程灰 (`#e0e5ec`) + 警示橙 (`#ff4500`) + 深岩灰 (`#2b3a42`).
-
-\*   \*\*字体\*\*: 数据使用 `Share Tech Mono`，数字时钟使用 `VT323` 像素字体。
-
-\*   \*\*布局\*\*: 
-
-&nbsp;   \*   \*\*桌面端\*\*: 锁定 100vh 视口高度（无外部滚动条），使用 CSS 容器查询实现自适应网格。
-
-&nbsp;   \*   \*\*移动端\*\*: 响应式竖向流式布局。
-
-
-
-\## ✨ 功能特性
-
-
-
-\*   \*\*实时监控\*\*: CPU、内存、Swap、网络 I/O、磁盘 I/O 及使用率。
-
-\*   \*\*系统信息\*\*: 内核版本、启动时间、系统负载 (Load Average)、进程数。
-
-\*   \*\*网络信息\*\*: 自动检测公网 IP (支持 IPv4/IPv6)，支持鼠标悬停显示完整 IP。
-
-\*   \*\*视觉特效\*\*: 平滑的贝塞尔曲线图表 (Chart.js)，带动画的进度条。
-
-\*   \*\*硬件传感器\*\*: 自动识别 CPU、NVMe 固态硬盘及无线网卡温度。
-
-
-
-\## 🛠️ 安装指南
-
-
-
-\### 1. 后端设置 (Python)
-
-
-
-请确保服务器已安装 Python 3 (Debian/Ubuntu/CentOS)。
-
-
+1. 更新系统并安装 Python 包管理工具：
 
 ```bash
-
-\# 1. 安装系统依赖
-
 sudo apt update
-
-sudo apt install python3-pip
-
-
-
-\# 2. 克隆仓库
-
-git clone https://github.com/your-username/chronos-monitor.git
-
-cd chronos-monitor/backend
-
-
-
-\# 3. 安装 Python 依赖库
-
-pip3 install -r requirements.txt --break-system-packages
-
-
-
-\# 4. 测试运行
-
-python3 monitor.py
-
-\# 输出应显示: Running on http://127.0.0.1:5000
-
+sudo apt install python3-pip -y
 ```
 
-
-
-\### 2. 设置开机自启 (Systemd)
-
-
-
-使用提供的模板创建系统服务，让后台程序开机自动运行。
-
-
+2. 安装后端所需的 Python 依赖库：
 
 ```bash
-
-\# 1. 复制服务文件
-
-sudo cp ../config/chronos.service /etc/systemd/system/
-
-
-
-\# 2. 修改文件中的路径
-
-sudo nano /etc/systemd/system/chronos.service
-
-\# (请务必修改 WorkingDirectory 和 ExecStart 为你实际存放代码的路径)
-
-
-
-\# 3. 启用并启动服务
-
-sudo systemctl daemon-reload
-
-sudo systemctl enable chronos.service
-
-sudo systemctl start chronos.service
-
+pip3 install flask flask-cors psutil requests --break-system-packages
 ```
 
+3. 创建目录并上传后端代码（假设您已将 `monitor.py` 上传至该目录）：
 
+```bash
+mkdir -p /opt/chronos/backend
+# 请在此处将 monitor.py 放入 /opt/chronos/backend/
+```
 
-\### 3. 前端部署与 Nginx 反代 (推荐)
+4. 测试运行后端（确保没有报错）：
 
+```bash
+python3 /opt/chronos/backend/monitor.py
+# 正常情况下应输出：Running on http://127.0.0.1:5000
+# 按 Ctrl+C 停止测试
+```
 
+### 第二步：配置开机自启 (Systemd)
 
-出于安全考虑，后端默认只监听 `127.0.0.1:5000`。你需要使用 Nginx（或雷池 WAF 等）来托管前端页面并反向代理 API。
+为了让监控服务在后台稳定运行并随系统启动，我们需要创建一个服务文件。
 
+1. 创建服务配置文件：
 
+```bash
+sudo nano /etc/systemd/system/chronos.service
+```
 
-\*\*步骤 1: 放置前端文件\*\*
+2. 将以下内容粘贴进去（请确认路径与您实际存放路径一致）：
 
-将 `frontend` 文件夹中的 `index.html` 复制到你的网站目录 (例如 `/var/www/chronos`)。
+```ini
+[Unit]
+Description=Chronos Dashboard Backend
+After=network.target
 
+[Service]
+# 后台运行模式
+Type=simple
+# 运行用户（建议使用 root 以获取完整的硬件信息）
+User=root
 
+# 工作目录
+WorkingDirectory=/opt/chronos/backend
 
-\*\*步骤 2: 配置 Nginx\*\*
+# 启动命令
+ExecStart=/usr/bin/python3 /opt/chronos/backend/monitor.py
 
-参考 `config/nginx.conf` 的内容，在你的 Nginx 配置中添加规则。关键配置如下：
+# 崩溃自动重启机制
+Restart=always
+RestartSec=5
 
+[Install]
+WantedBy=multi-user.target
+```
 
+3. 启用并启动服务：
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable chronos.service
+sudo systemctl start chronos.service
+```
+
+### 第三步：前端部署与 Nginx 反向代理
+
+出于安全考虑，后端默认只监听本地 `127.0.0.1`。我们需要使用 Nginx（或雷池 WAF）来发布网页并转发数据请求。
+
+1. 准备前端文件目录：
+
+```bash
+sudo mkdir -p /var/www/chronos
+# 请将 index.html 上传至 /var/www/chronos/index.html
+```
+
+2. 创建 Nginx 配置文件：
+
+```bash
+sudo nano /etc/nginx/conf.d/chronos.conf
+```
+
+3. 粘贴以下配置（请修改 `server_name` 为您的域名或 IP）：
 
 ```nginx
+server {
+    listen 80;
+    # 请修改为您实际的域名或IP
+    server_name panel.yourdomain.com;
 
-\# 静态页面
+    # 1. 前端页面托管
+    location / {
+        root /var/www/chronos;
+        index index.html;
+        try_files $uri $uri/ =404;
+    }
 
-location / {
-
-&nbsp;   root /var/www/chronos; # 你的前端目录
-
-&nbsp;   index index.html;
-
+    # 2. 后端 API 反向代理
+    # 前端请求 /api/stats 时，Nginx 会自动转发给本地的 Python 后端
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000/api/;
+        
+        # 传递真实 IP 头信息
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
 }
-
-
-
-\# API 反向代理
-
-location /api/ {
-
-&nbsp;   proxy\_pass http://127.0.0.1:5000/api/;
-
-&nbsp;   proxy\_set\_header Host $host;
-
-}
-
 ```
 
-
-
-\*\*步骤 3: 重启 Nginx\*\*
+4. 检查配置并重启 Nginx：
 
 ```bash
-
 sudo nginx -t
-
 sudo systemctl restart nginx
-
 ```
 
+---
 
+## ⚙️ 个性化配置
 
-\### 4. 访问与配置
+如果您按照上述 Nginx 反向代理方式部署，**通常不需要修改任何代码**。
 
+如果您是本地直接测试（不使用 Nginx），或者使用了特殊的端口配置，可以打开 `frontend/index.html`，找到底部的 JavaScript 配置区域进行修改：
 
+```javascript
+// ================= 配置区域 =================
 
-直接在浏览器访问你的域名（例如 `http://your-domain.com`）。
+// 场景 1：生产环境（推荐）
+// 使用 Nginx 反代时，使用相对路径，自动适配域名
+const API_URL = '/api/stats';
 
+// 场景 2：本地开发测试
+// 如果直接双击打开 HTML，需要填入服务器的完整地址
+// const API_URL = 'http://192.168.1.100:5000/api/stats';
 
+// ===========================================
+```
 
-\*   \*\*默认配置\*\*: 前端 `index.html` 默认通过相对路径 `/api/stats` 获取数据，如果您按照上述 Nginx 方式部署，\*\*无需修改任何代码\*\*。
+## 🖥️ 兼容性说明
 
-\*   \*\*本地测试\*\*: 如果不使用反代，想直接打开 HTML 测试，请修改 `index.html` 底部的 `API\_URL` 为 `http://服务器IP:5000/api/stats`，并确保后端监听 `0.0.0.0`。
+*   **操作系统**: 完美支持 Debian 11/12, Ubuntu 20.04+, CentOS 7+ 以及各类 NAS 系统（如飞牛 OS）。
+*   **硬件架构**: 支持 x86_64 (Intel/AMD) 及 ARM64 (树莓派/Mac M系列)。
+*   **浏览器**: 推荐使用 Chrome, Edge, Safari 或 Firefox 的最新版本以获得最佳动画体验。
 
+## 📄 开源协议
 
-
-\## 🖥️ 兼容性
-
-
-
-\*   \*\*操作系统\*\*: Linux (在 Debian 12, Ubuntu 22.04 上测试通过)
-
-\*   \*\*架构\*\*: x86\_64, ARM64 (完美支持树莓派、飞牛 NAS 等)
-
-\*   \*\*浏览器\*\*: Chrome, Firefox, Safari, Edge (现代浏览器)
-
-
-
-\## 📄 License
-
-
-
-MIT License.
-
+本项目采用 MIT 协议开源。您可以自由地修改、分发或用于商业用途。
