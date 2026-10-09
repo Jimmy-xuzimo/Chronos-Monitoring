@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#e0e5ec" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>CHRONOS // ACCESS</title>
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/login.css" />
+
+  <script src="js/config.js"></script>
+  <script src="js/prefs.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/device.js"></script>
+</head>
+
+<body data-page="login">
+  <div class="scanlines" aria-hidden="true"></div>
+  <div class="login-bg-grid" aria-hidden="true"></div>
+
+  <div class="login-tools">
+    <button class="tool-btn" id="login-theme" type="button" title="Theme">◐</button>
+    <button class="tool-btn" id="login-lang" type="button" title="Language">EN</button>
+  </div>
+
+  <main class="login-shell">
+    <div class="login-head">
+      <span class="brand-mark">CHRONOS<span class="dot pulse"></span></span>
+      <div class="tagline">PERSONAL PANEL · 个人控制台</div>
+    </div>
+
+    <section class="panel login-panel" id="login-panel">
+      <div class="panel-head">
+        <span class="title" data-i18n="login.title">身份验证</span>
+        <span class="head-right"><span class="chip plain"><span class="dot pulse"></span><span data-i18n="login.security">安全连接</span></span></span>
+      </div>
+      <div class="panel-body">
+        <form class="login-form" id="login-form" autocomplete="on">
+          <div class="field">
+            <label for="username" data-i18n="login.user">USER 账号</label>
+            <input id="username" name="username" type="text"
+                   autocomplete="username" spellcheck="false" />
+          </div>
+          <div class="field">
+            <label for="password" data-i18n="login.pass">PASS 密码</label>
+            <div class="pass-wrap">
+              <input id="password" name="password" type="password"
+                     autocomplete="current-password" />
+              <button class="pass-toggle" id="pass-toggle" type="button" data-i18n="login.show">显示</button>
+            </div>
+          </div>
+          <div class="hint" id="login-hint"></div>
+          <button class="btn primary" id="login-submit" type="submit" data-i18n="login.submit">登录</button>
+        </form>
+
+        <div class="login-foot">
+          <span>CHRONOS v2.0</span>
+          <span id="device-badge">DEVICE: --</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

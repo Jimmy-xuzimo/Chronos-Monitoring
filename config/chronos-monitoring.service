@@ -1,0 +1,33 @@
+# ============================================================
+# CHRONOS — Systemd 服务单元
+# 放置位置：/etc/systemd/system/chronos-monitoring.service
+# 启用：
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now chronos-monitoring
+# ============================================================
+
+[Unit]
+Description=CHRONOS Panel Backend (server monitoring + auth)
+After=network.target
+
+[Service]
+Type=simple
+
+# 建议使用 root，以便读取温度传感器与磁盘 I/O 等硬件信息
+User=root
+
+# 工作目录（与 app.py 同级，config.json 会生成在此）
+WorkingDirectory=/opt/chronos-monitoring/backend
+
+ExecStart=/usr/bin/python3 /opt/chronos-monitoring/backend/app.py
+
+# 崩溃自动重启
+Restart=always
+RestartSec=5
+
+# 日志进入 journalctl
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

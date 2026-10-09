@@ -1,0 +1,707 @@
+/* ============================================================
+   CHRONOS — base.css
+   主题变量（浅色 / 深色）/ 重置 / 灰橙工业废土风基础组件
+   配色沿用 Chronos-Monitoring：#e0e5ec 工程灰 + #ff4500 警示橙
+   字体已本地化（fonts/*.woff2），零外部 CDN 依赖
+   ============================================================ */
+
+/* ---------- 本地字体（latin 子集，共 ~31KB） ---------- */
+@font-face {
+  font-family: "Share Tech Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/ShareTechMono-Regular.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "VT323";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("../fonts/VT323-Regular.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light;
+
+  /* 字号体系（全局统一） */
+  --fs-2xs: 9px;
+  --fs-xs: 9.5px;
+  --fs-sm: 10.5px;
+  --fs-md: 11.5px;
+  --fs-lg: 13px;
+
+  /* 背景 / 表面 */
+  --bg: #e0e5ec;
+  --bg-deep: #d4dbe3;
+  --panel: rgba(238, 241, 245, 0.95);
+  --panel-solid: #eef1f5;
+  --topbar-bg: rgba(224, 229, 236, 0.92);
+  --panel-head-bg: rgba(43, 58, 66, 0.045);
+  --input-bg: rgba(255, 255, 255, 0.65);
+
+  /* 文本 */
+  --text: #2b3a42;
+  --text-soft: rgba(43, 58, 66, 0.58);
+  --text-faint: rgba(43, 58, 66, 0.34);
+
+  /* 强调色 */
+  --orange: #ff4500;
+  --orange-strong: #e63e00;
+  --orange-soft: rgba(255, 69, 0, 0.1);
+  --orange-line: rgba(255, 69, 0, 0.3);
+  --green: #16a34a;
+  --blue: #2563eb;
+  --red: #e01b24;
+
+  /* 线条 / 填充 */
+  --border: #cfd8dc;
+  --border-strong: #2b3a42;
+  --grid-line: rgba(43, 58, 66, 0.06);
+  --hairline: rgba(43, 58, 66, 0.1);
+  --fill-weak: rgba(43, 58, 66, 0.05);
+  --fill-soft: rgba(43, 58, 66, 0.12);
+  --fill-strong: rgba(43, 58, 66, 0.45);
+  --fill-stronger: rgba(43, 58, 66, 0.28);
+
+  /* 阴影 / 质感 */
+  --shadow-1: rgba(43, 58, 66, 0.05);
+  --scanline: rgba(0, 0, 0, 0.028);
+
+  --gap: 14px;
+  --topbar-h: 48px;
+  /* 正文：高可读性系统无衬线字体（零下载，中文渲染清晰） */
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
+    sans-serif;
+  /* 等宽：仅时钟日期 / 技术编号使用 */
+  --font-mono: "Share Tech Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Courier New", monospace;
+  --font-pixel: "VT323", var(--font-mono);
+}
+
+/* 深色模式：同一套变量，仅替换取值，组件无需改动 */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #14171a;
+  --bg-deep: #0f1215;
+  --panel: rgba(28, 32, 36, 0.95);
+  --panel-solid: #1c2024;
+  --topbar-bg: rgba(20, 23, 26, 0.9);
+  --panel-head-bg: rgba(223, 228, 232, 0.05);
+  --input-bg: rgba(255, 255, 255, 0.06);
+
+  --text: #dfe4e8;
+  --text-soft: rgba(223, 228, 232, 0.62);
+  --text-faint: rgba(223, 228, 232, 0.36);
+
+  --orange: #ff5a1f;
+  --orange-strong: #ff6a33;
+  --orange-soft: rgba(255, 90, 31, 0.14);
+  --orange-line: rgba(255, 90, 31, 0.38);
+  --green: #22c55e;
+  --blue: #3b82f6;
+  --red: #f0453f;
+
+  --border: #333a40;
+  --border-strong: #5b656e;
+  --grid-line: rgba(223, 228, 232, 0.05);
+  --hairline: rgba(223, 228, 232, 0.12);
+  --fill-weak: rgba(223, 228, 232, 0.06);
+  --fill-soft: rgba(223, 228, 232, 0.14);
+  --fill-strong: rgba(223, 228, 232, 0.5);
+  --fill-stronger: rgba(223, 228, 232, 0.32);
+
+  --shadow-1: rgba(0, 0, 0, 0.45);
+  --scanline: rgba(255, 255, 255, 0.022);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  letter-spacing: inherit;
+}
+
+/* ---------------------------------------------
+   全局扫描线 / 颗粒质感（工业废土氛围）
+   --------------------------------------------- */
+.scanlines {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0,
+    transparent 2px,
+    var(--scanline) 3px
+  );
+  mix-blend-mode: multiply;
+}
+
+html[data-theme="dark"] .scanlines {
+  mix-blend-mode: screen;
+}
+
+html[data-scanlines="off"] .scanlines {
+  display: none;
+}
+
+/* ---------------------------------------------
+   顶栏（面板 / 设置页共享）
+   --------------------------------------------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: var(--topbar-h);
+  padding: 6px max(12px, env(safe-area-inset-left)) 6px
+    max(12px, env(safe-area-inset-right));
+  background: var(--topbar-bg);
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-pixel);
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.brand-mark .dot {
+  width: 8px;
+  height: 8px;
+  margin-bottom: 2px;
+}
+
+.brand-sub {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  border-left: 1px solid var(--border);
+  padding-left: 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* 小屏：精简顶栏，避免右侧状态芯片把页面撑出横向滚动 */
+@media (max-width: 700px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+  .brand-sub {
+    display: none;
+  }
+  #chip-clock,
+  #device-badge {
+    display: none;
+  }
+  .topbar-right {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .topbar-right .chip {
+    padding: 2px 6px;
+    font-size: 9px;
+  }
+  .topbar .btn {
+    padding: 6px 10px;
+    min-height: 32px;
+  }
+}
+
+/* ---------------------------------------------
+   技术面板
+   --------------------------------------------- */
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: 2px 2px 0 var(--shadow-1);
+}
+
+/* HUD 角标：左上 / 右下 L 形括线（科技感细节，纯边框绘制零图片） */
+.panel::before,
+.panel::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.panel::before {
+  top: 3px;
+  left: 3px;
+  border-top: 2px solid var(--orange-line);
+  border-left: 2px solid var(--orange-line);
+}
+
+.panel::after {
+  bottom: 3px;
+  right: 3px;
+  border-bottom: 2px solid var(--orange-line);
+  border-right: 2px solid var(--orange-line);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--orange);
+  background: var(--panel-head-bg);
+  border-bottom: 1px solid var(--border-strong);
+  flex-shrink: 0;
+}
+
+.panel-head .head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+.panel-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 10px;
+  overflow: auto;
+}
+
+.panel-body.flush {
+  padding: 0;
+}
+
+/* ---------------------------------------------
+   小元件
+   --------------------------------------------- */
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--orange);
+  flex-shrink: 0;
+}
+
+.dot.ok {
+  background: var(--green);
+}
+
+.dot.bad {
+  background: var(--red);
+}
+
+.dot.pulse {
+  animation: zebra-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes zebra-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 var(--orange-line);
+  }
+  50% {
+    opacity: 0.45;
+    box-shadow: 0 0 0 5px rgba(255, 69, 0, 0);
+  }
+}
+
+.label {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 2px;
+}
+
+.value {
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.value.orange {
+  color: var(--orange);
+}
+
+.pixel {
+  font-family: var(--font-pixel);
+  line-height: 0.92;
+  letter-spacing: 0.04em;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 1px solid var(--orange-line);
+  background: var(--orange-soft);
+  color: var(--orange);
+  white-space: nowrap;
+}
+
+.chip.plain {
+  border-color: var(--border);
+  background: var(--fill-weak);
+  color: var(--text-soft);
+}
+
+.chip.ok {
+  border-color: rgba(22, 163, 74, 0.35);
+  background: rgba(22, 163, 74, 0.1);
+  color: var(--green);
+}
+
+.chip.bad {
+  border-color: rgba(224, 27, 36, 0.35);
+  background: rgba(224, 27, 36, 0.1);
+  color: var(--red);
+}
+
+/* 进度条 */
+.bar {
+  position: relative;
+  width: 100%;
+  height: 6px;
+  background: var(--fill-soft);
+  border: 1px solid var(--hairline);
+  overflow: hidden;
+}
+
+.bar.tall {
+  height: 18px;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--orange);
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bar > span.gray {
+  background: var(--fill-strong);
+}
+
+.bar > span.muted {
+  background: var(--fill-stronger);
+}
+
+/* 滚动条 */
+.scroll-y {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--orange) var(--fill-weak);
+}
+
+.scroll-y::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scroll-y::-webkit-scrollbar-thumb {
+  background: var(--orange);
+}
+
+.scroll-y::-webkit-scrollbar-track {
+  background: var(--fill-weak);
+}
+
+/* 按钮（统一体系：直角工业风 / 全站一致的尺寸与字距） */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  min-height: 34px;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+}
+
+.btn:hover {
+  background: var(--fill-weak);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn.primary {
+  border-color: var(--orange);
+  background: var(--orange);
+  color: #fff;
+  box-shadow: 0 0 12px var(--orange-soft);
+}
+
+.btn.primary:hover {
+  background: var(--orange-strong);
+}
+
+.btn.ghost {
+  border-color: var(--border);
+  color: var(--text-soft);
+}
+
+.btn.ghost:hover {
+  color: var(--orange);
+  border-color: var(--orange-line);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn.danger {
+  border-color: rgba(224, 27, 36, 0.5);
+  color: var(--red);
+}
+
+.btn.danger:hover {
+  background: rgba(224, 27, 36, 0.1);
+}
+
+/* 表单 */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.field > label {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.field input,
+.field select {
+  width: 100%;
+  padding: 8px 10px;
+  min-height: 36px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px var(--orange-soft);
+}
+
+.field input::placeholder {
+  color: var(--text-faint);
+}
+
+.hint {
+  font-size: var(--fs-xs);
+  color: var(--text-soft);
+  min-height: 14px;
+}
+
+.hint.ok {
+  color: var(--green);
+}
+
+.hint.err {
+  color: var(--red);
+}
+
+/* ---------------------------------------------
+   时钟（容器查询自适应字号）
+   复刻 Chronos 原版：日期为粗体等宽字，时间数字为像素字
+   --------------------------------------------- */
+.clock-wrap {
+  container-type: inline-size;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 6px 0;
+}
+
+.clock-date {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: var(--orange);
+  opacity: 0.82;
+  margin-bottom: 4px;
+  white-space: nowrap;
+}
+
+.clock-time {
+  font-family: var(--font-pixel);
+  font-size: 20cqw;
+  line-height: 0.92;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  white-space: nowrap;
+  /* 允许溢出以便 JS 测量并自适应缩小，确保任何宽度下完整显示 */
+}
+
+.clock-meta {
+  margin-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--text-soft);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------
+   通用小工具
+   --------------------------------------------- */
+.row-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+.muted {
+  color: var(--text-soft);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mt8 {
+  margin-top: 8px;
+}
+
+.mt12 {
+  margin-top: 12px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
