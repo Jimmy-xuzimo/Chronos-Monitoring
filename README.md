@@ -1,5 +1,9 @@
 # CHRONOS · PANEL
 
+**项目官网 / Project website：[jimmy-xuzimo.github.io/Chronos-Monitoring](https://jimmy-xuzimo.github.io/Chronos-Monitoring/)**
+
+官网支持中英双语、深浅主题与交互示意预览。网站源码与维护方式见 [website/README.md](website/README.md)。
+
 > 一个轻量的个人服务器监控面板 —— 灰橙色工业废土风 · 服务器监控 + 核心入口导航 + 联系方式
 >
 > 全设备自适应（手机 / 平板 / 电脑，横屏 / 竖屏），通过浏览器标识（User-Agent）与屏幕朝向自动切换布局。
