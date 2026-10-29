@@ -1,422 +1,242 @@
-# -*- coding: utf-8 -*-
-"""
-CHRONOS —— 个人面板后端
-=====================================================
-功能：
-  1. 服务器监控采集（CPU 含每核 / 内存 / 网络 含网卡与 TCP 连接 / 磁盘 / 系统信息）
-  2. 登录鉴权（Flask 签名 Cookie 会话）
-  3. 凭证管理（账号密码持久化于 config.json，可在面板内修改）
-
-设计原则：
-  - 仅监听 127.0.0.1，通过 Nginx 反向代理对外发布
-  - 低频轮询（前端 5s 一次）+ 数据差分缓存，资源占用极低
-  - 仅依赖 flask / flask-cors / psutil / requests
-"""
-import os
-import time
-import hmac
+import datetime as dt
 import json
-import socket
-import hashlib
+import os
 import secrets
-import platform
-import datetime
 import threading
+import time
 from functools import wraps
+from pathlib import Path
+from zoneinfo import ZoneInfo,ZoneInfoNotFoundError
+from flask import Flask,jsonify,request,session,send_from_directory
+from werkzeug.middleware.proxy_fix import ProxyFix
+from settings import load,save,public,update,verify_password,hash_password
+from store import cache,db,alerts
+from nodes import list_nodes,authenticate_agent,validate_report,receive
 
-import psutil
-import requests
-from flask import Flask, jsonify, request, session
-from flask_cors import CORS
+app=Flask(__name__,static_folder=None)
+app.secret_key=load()['secret_key']
+app.config.update(SESSION_COOKIE_HTTPONLY=True,SESSION_COOKIE_SAMESITE='Lax',SESSION_COOKIE_SECURE=os.environ.get('PANEL_COOKIE_SECURE','1')=='1',PERMANENT_SESSION_LIFETIME=dt.timedelta(days=7),MAX_CONTENT_LENGTH=256*1024)
+app.wsgi_app=ProxyFix(app.wsgi_app,x_for=1,x_proto=1)
+failures={};lock=threading.Lock()
 
-# ============================================================
-# 配置与凭证持久化
-# ============================================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
-
-DEFAULT_USERNAME = "admin"
-DEFAULT_PASSWORD = "admin123"
-
-
-def hash_password(password, salt=None, iterations=200_000):
-    """使用 PBKDF2-HMAC-SHA256 生成密码哈希（标准库实现，无额外依赖）。"""
-    salt = salt or secrets.token_hex(16)
-    dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), iterations)
-    return "pbkdf2_sha256${}${}${}".format(iterations, salt, dk.hex())
-
-
-def verify_password(password, stored):
-    """校验密码，使用恒定时间比较避免时序攻击。"""
-    try:
-        algo, iterations, salt, hashed = stored.split("$")
-        if algo != "pbkdf2_sha256":
-            return False
-        dk = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), int(iterations))
-        return hmac.compare_digest(dk.hex(), hashed)
-    except Exception:
-        return False
-
-
-def load_config():
-    """读取配置，首次运行自动生成（含默认账号密码与随机 secret_key）。"""
-    if os.path.exists(CONFIG_FILE):
-        try:
-            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
-                cfg = json.load(f)
-            if "secret_key" in cfg and "password" in cfg:
-                return cfg
-        except Exception:
-            pass
-    cfg = {
-        "secret_key": secrets.token_hex(32),
-        "username": DEFAULT_USERNAME,
-        "password": hash_password(DEFAULT_PASSWORD),
-    }
-    save_config(cfg)
-    return cfg
-
-
-def save_config(cfg):
-    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, ensure_ascii=False, indent=2)
-    try:
-        os.chmod(CONFIG_FILE, 0o600)
-    except Exception:
-        pass
-
-
-CONFIG = load_config()
-
-app = Flask(__name__)
-app.secret_key = CONFIG["secret_key"]
-app.config.update(
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE="Lax",
-    # 若通过 HTTPS(Nginx) 发布，建议改为 True
-    SESSION_COOKIE_SECURE=False,
-    PERMANENT_SESSION_LIFETIME=datetime.timedelta(days=7),
-)
-# 同源部署下 CORS 非必需，保留以方便本地联调
-CORS(app, supports_credentials=True)
-
-# ============================================================
-# 登录失败节流（按 IP，简单内存计数）
-# ============================================================
-LOGIN_WINDOW = 60      # 秒
-LOGIN_MAX_FAILS = 5    # 窗口内最大失败次数
-_login_fails = {}      # ip -> [timestamps]
-_fail_lock = threading.Lock()
-
-
-def _too_many_fails(ip):
-    now = time.time()
-    with _fail_lock:
-        stamps = [t for t in _login_fails.get(ip, []) if now - t < LOGIN_WINDOW]
-        _login_fails[ip] = stamps
-        return len(stamps) >= LOGIN_MAX_FAILS
-
-
-def _record_fail(ip):
-    with _fail_lock:
-        _login_fails.setdefault(ip, []).append(time.time())
-
-
-def _clear_fails(ip):
-    with _fail_lock:
-        _login_fails.pop(ip, None)
-
-
-def require_auth(fn):
-    """要求已登录会话，否则返回 401。"""
+def authenticated(fn):
     @wraps(fn)
-    def wrapper(*args, **kwargs):
-        if not session.get("user"):
-            return jsonify({"error": "unauthorized"}), 401
-        return fn(*args, **kwargs)
+    def wrapper(*args,**kwargs):
+        cfg=load()
+        if session.get('user')!=cfg['username'] or session.get('version',0)!=cfg.get('auth_version',0):
+            return jsonify(error='unauthorized'),401
+        return fn(*args,**kwargs)
     return wrapper
 
+@app.before_request
+def csrf():
+    if request.path.startswith('/api/') and request.path!='/api/agent/report' and request.method in ['POST','PUT','DELETE','PATCH']:
+        token=session.get('csrf')
+        if not token or not secrets.compare_digest(token,request.headers.get('X-CSRF-Token','')):return jsonify(error='csrf',message='会话已更新，请刷新后重试'),403
 
-# ============================================================
-# 系统监控采集
-# ============================================================
-class SystemMonitor:
-    """低频采样的系统指标采集器；差分计算网络/磁盘速率并缓存公网 IP。"""
+@app.after_request
+def headers(response):
+    if request.path.startswith('/api/'):response.headers['Cache-Control']='no-store'
+    response.headers['X-Content-Type-Options']='nosniff'
+    response.headers['Referrer-Policy']='same-origin'
+    return response
 
-    def __init__(self):
-        self.last_time = time.time()
-        self.last_net = psutil.net_io_counters()
-        self.last_disk_io = self._safe_disk_io()
-        self.lock = threading.Lock()
-        self.public_ip = "Checking..."
-        self.last_ip_check = 0.0
-
-    @staticmethod
-    def _safe_disk_io():
-        try:
-            return psutil.disk_io_counters(perdisk=True) or {}
-        except Exception:
-            return {}
-
-    def sample_rates(self):
-        """返回 (tx, rx, 累计发送, 累计接收, 各磁盘读写速率)。"""
-        with self.lock:
-            now = time.time()
-            duration = now - self.last_time
-            if duration < 0.1:
-                duration = 0.1
-
-            cur_net = psutil.net_io_counters()
-            tx = max(0.0, (cur_net.bytes_sent - self.last_net.bytes_sent) / duration)
-            rx = max(0.0, (cur_net.bytes_recv - self.last_net.bytes_recv) / duration)
-
-            cur_disk_io = self._safe_disk_io()
-            disk_rates = {}
-            for name, counters in cur_disk_io.items():
-                last = self.last_disk_io.get(name)
-                if last is not None:
-                    disk_rates[name] = {
-                        "r": max(0.0, (counters.read_bytes - last.read_bytes) / duration),
-                        "w": max(0.0, (counters.write_bytes - last.write_bytes) / duration),
-                    }
-
-            self.last_time = now
-            self.last_net = cur_net
-            self.last_disk_io = cur_disk_io
-            return tx, rx, cur_net.bytes_sent, cur_net.bytes_recv, disk_rates
-
-    def get_public_ip(self):
-        """公网 IP 每 300 秒刷新一次，避免频繁外网请求。"""
-        if time.time() - self.last_ip_check > 300:
-            self.last_ip_check = time.time()
-            threading.Thread(target=self._fetch_ip, daemon=True).start()
-        return self.public_ip
-
-    def _fetch_ip(self):
-        for url in ("https://api64.ipify.org?format=json", "https://ifconfig.me/ip"):
-            try:
-                r = requests.get(url, timeout=3)
-                ip = r.json()["ip"] if "ipify" in url else r.text.strip()
-                if ip:
-                    self.public_ip = ip
-                    return
-            except Exception:
-                continue
-
-
-monitor = SystemMonitor()
-
-
-# ============================================================
-# 静态系统信息（启动时读取一次并缓存，避免每轮轮询重复解析）
-# ============================================================
-def _read_static_info():
-    info = {"os": "--", "cpu_model": "--"}
-    try:
-        with open("/etc/os-release", "r", encoding="utf-8") as f:
-            for line in f:
-                if line.startswith("PRETTY_NAME="):
-                    info["os"] = line.split("=", 1)[1].strip().strip('"')
-                    break
-    except Exception:
-        pass
-    try:
-        with open("/proc/cpuinfo", "r", encoding="utf-8") as f:
-            for line in f:
-                if line.startswith("model name"):
-                    info["cpu_model"] = line.split(":", 1)[1].strip()
-                    break
-    except Exception:
-        pass
-    return info
-
-
-_STATIC_INFO = _read_static_info()
-
-# 网卡地址缓存（60 秒刷新，net_if_addrs 读 /proc 成本低但无需每轮做）
-_iface_cache = {"ts": 0.0, "data": []}
-
-
-def _collect_ifaces():
-    now = time.time()
-    if now - _iface_cache["ts"] > 60:
-        ifaces = []
-        try:
-            for name, addrs in psutil.net_if_addrs().items():
-                if name == "lo":
-                    continue
-                ipv4 = next((a.address for a in addrs if a.family == socket.AF_INET), "")
-                if not ipv4:
-                    continue
-                ifaces.append({"name": name, "ipv4": ipv4})
-        except Exception:
-            pass
-        _iface_cache["data"] = ifaces
-        _iface_cache["ts"] = now
-    return _iface_cache["data"]
-
-
-def _collect_conns():
-    """TCP 连接统计（需 root；失败时返回空）。"""
-    est = lsn = 0
-    try:
-        for c in psutil.net_connections(kind="inet"):
-            if c.status == psutil.CONN_ESTABLISHED:
-                est += 1
-            elif c.status == psutil.CONN_LISTEN:
-                lsn += 1
-    except Exception:
-        pass
-    return {"est": est, "lsn": lsn}
-
-
-
-def _collect_disks(disk_rates):
-    disks = []
-    try:
-        for part in psutil.disk_partitions(all=False):
-            device = part.device or ""
-            mount = part.mountpoint or ""
-            if any(x in device for x in ("loop", "snap", "ram", "overlay")) or "/docker" in mount:
-                continue
-            try:
-                usage = psutil.disk_usage(mount)
-            except Exception:
-                continue
-            dev_name = device.split("/")[-1]
-            io_stat = {"r": 0.0, "w": 0.0}
-            for key, val in disk_rates.items():
-                if key in dev_name or dev_name in key:
-                    io_stat = val
-                    break
-            disks.append({
-                "mount": mount,
-                "device": device,
-                "total": usage.total,
-                "used": usage.used,
-                "percent": usage.percent,
-                "io": io_stat,
-            })
-    except Exception:
-        pass
-    return sorted(disks, key=lambda x: x["mount"])
-
-
-# ============================================================
-# 接口：鉴权
-# ============================================================
-@app.route("/api/session", methods=["GET"])
+@app.get('/api/session')
 def api_session():
-    return jsonify({
-        "authenticated": bool(session.get("user")),
-        "username": session.get("user"),
-    })
+    session.setdefault('csrf',secrets.token_urlsafe(32))
+    cfg=load();ok=session.get('user')==cfg['username'] and session.get('version',0)==cfg.get('auth_version',0)
+    return jsonify(authenticated=ok,username=session.get('user') if ok else None,csrf=session['csrf'])
 
+@app.post('/api/login')
+def login():
+    ip=request.remote_addr;now=time.time()
+    with lock:
+        if len(failures)>5000:
+            for key in list(failures):
+                if not failures[key] or now-failures[key][-1]>60:failures.pop(key,None)
+        attempts=failures.setdefault(ip,[]);attempts[:]=[x for x in attempts if now-x<60]
+        if len(attempts)>=5:return jsonify(message='尝试次数过多，请一分钟后再试'),429
+    data=request.get_json(silent=True) or {};cfg=load()
+    if data.get('username')!=cfg['username'] or not verify_password(data.get('password',''),cfg['password']):
+        with lock:failures.setdefault(ip,[]).append(now)
+        return jsonify(message='账号或密码错误'),401
+    session.clear();session.permanent=True;session.update(user=cfg['username'],version=cfg.get('auth_version',0),csrf=secrets.token_urlsafe(32))
+    with lock:failures.pop(ip,None)
+    return jsonify(ok=True,csrf=session['csrf'],username=cfg['username'])
 
-@app.route("/api/login", methods=["POST"])
-def api_login():
-    ip = request.headers.get("X-Real-IP") or request.remote_addr or "unknown"
-    if _too_many_fails(ip):
-        return jsonify({"error": "too_many_attempts",
-                        "message": "尝试次数过多，请 60 秒后重试"}), 429
+@app.post('/api/logout')
+def logout():session.clear();return jsonify(ok=True)
 
-    data = request.get_json(silent=True) or {}
-    username = (data.get("username") or "").strip()
-    password = data.get("password") or ""
+@app.post('/api/credentials')
+@authenticated
+def credentials():
+    data=request.get_json() or {};cfg=load()
+    if not verify_password(data.get('current_password',''),cfg['password']):return jsonify(message='当前密码错误'),400
+    username=str(data.get('new_username') or cfg['username']).strip();password=data.get('new_password','')
+    if not username or len(username)>80:return jsonify(message='账号无效'),400
+    if password and len(password)<10:return jsonify(message='新密码至少 10 位'),400
+    cfg['username']=username
+    if password:cfg['password']=hash_password(password)
+    cfg['auth_version']=cfg.get('auth_version',0)+1;save(cfg);session.update(user=username,version=cfg['auth_version'])
+    return jsonify(ok=True)
 
-    cfg = load_config()
-    if username == cfg.get("username") and verify_password(password, cfg.get("password", "")):
-        session.permanent = True
-        session["user"] = username
-        _clear_fails(ip)
-        return jsonify({"ok": True, "username": username})
+def source(key,max_age):
+    data=cache(key)
+    if data['updated'] and time.time()-data['updated']>max_age:
+        data['status']='stale';data['error']=data['error'] or '数据已过期，等待后台同步'
+    return data
 
-    _record_fail(ip)
-    return jsonify({"error": "invalid_credentials", "message": "账号或密码错误"}), 401
+def calendar_data():
+    cfg=load();events=[];sources=[]
+    for cal in cfg['calendars']:
+        s=source('calendar:'+cal['id'],2100)
+        sources.append({'id':cal['id'],'name':cal['name'],'color':cal['color'],**{k:v for k,v in s.items() if k!='data'}})
+        if s['data']:events.extend(s['data']['events'])
+    return {'events':sorted(events,key=lambda e:e['start']),'sources':sources,'timezone':cfg['timezone'],'semester_start':cfg['semester_start'],'semester_weeks':cfg['semester_weeks']}
 
+def service_data():
+    cfg=load();items=[]
+    for service in cfg['services']:
+        s=source('service:'+service['id'],1320)
+        items.append({'id':service['id'],'name':service['name'],'url':service['url'],**s})
+    return {'items':items,'probe_location':'服务器探测'}
 
-@app.route("/api/logout", methods=["POST"])
-def api_logout():
-    session.clear()
-    return jsonify({"ok": True})
+@app.get('/api/overview')
+@authenticated
+def overview():
+    cfg=load()
+    node=request.args.get('node','server')
+    if node!='server' and node not in [a['id'] for a in cfg.get('agents',[])]:return jsonify(message='节点不存在'),404
+    selected=source('stats' if node=='server' else 'node:'+node,35 if node=='server' else 45)
+    return jsonify(stats=selected,collector=source('collector',35),node_id=node,nodes=list_nodes(cfg),calendar=calendar_data(),services=service_data(),github=source('github',2100),news=source('news',100000),alerts=alerts(),entries=cfg['entries'],timezone=cfg['timezone'],server_time=time.time())
 
+@app.get('/api/stats')
+@authenticated
+def stats():
+    node=request.args.get('node','server')
+    if node!='server' and node not in [a['id'] for a in load().get('agents',[])]:return jsonify(message='节点不存在'),404
+    s=source('stats' if node=='server' else 'node:'+node,35 if node=='server' else 45)
+    if not s['data']:return jsonify(error='collect_pending',source=s),503
+    return jsonify(**s['data'],source={k:v for k,v in s.items() if k!='data'})
 
-@app.route("/api/credentials", methods=["POST"])
-@require_auth
-def api_credentials():
-    """修改账号/密码：需校验当前密码，随后写回 config.json。"""
-    data = request.get_json(silent=True) or {}
-    current = data.get("current_password") or ""
-    new_username = (data.get("new_username") or "").strip()
-    new_password = data.get("new_password") or ""
+@app.get('/api/calendar')
+@authenticated
+def calendar():return jsonify(calendar_data())
 
-    cfg = load_config()
-    if not verify_password(current, cfg.get("password", "")):
-        return jsonify({"error": "invalid_current_password", "message": "当前密码不正确"}), 401
+@app.get('/api/services')
+@authenticated
+def service_list():return jsonify(service_data())
 
-    if new_username:
-        cfg["username"] = new_username
-    if new_password:
-        if len(new_password) < 6:
-            return jsonify({"error": "weak_password", "message": "新密码至少 6 位"}), 400
-        cfg["password"] = hash_password(new_password)
+@app.get('/api/github')
+@authenticated
+def github():return jsonify(source('github',2100))
 
-    save_config(cfg)
-    # 用户信息变更后让当前会话同步
-    session["user"] = cfg["username"]
-    return jsonify({"ok": True, "username": cfg["username"]})
+@app.get('/api/news')
+@authenticated
+def news():
+    day=request.args.get('date')
+    if not day:return jsonify(source('news',100000))
+    with db() as c:
+        row=c.execute('SELECT * FROM news_editions WHERE day=?',(day,)).fetchone()
+        dates=[r['day'] for r in c.execute('SELECT day FROM news_editions ORDER BY day DESC')]
+    if not row:return jsonify(message='未找到该日资讯'),404
+    data=json.loads(row['data']);data['dates']=dates
+    return jsonify(data=data,status='ok',updated=row['updated'],attempted=row['updated'],error=None)
 
+@app.post('/api/news/sync')
+@authenticated
+def sync_news():
+    from store import put_cache
+    put_cache('news-request',True)
+    return jsonify(ok=True)
 
-# ============================================================
-# 接口：服务器监控
-# ============================================================
-@app.route("/api/stats", methods=["GET"])
-@require_auth
-def api_stats():
-    try:
-        tx, rx, total_tx, total_rx, disk_rates = monitor.sample_rates()
-        mem = psutil.virtual_memory()
-        try:
-            load = list(psutil.getloadavg())
-        except Exception:
-            load = [0.0, 0.0, 0.0]
-        uname = platform.uname()
+@app.get('/api/history')
+@authenticated
+def history():
+    hours={'1h':1,'24h':24,'7d':168,'30d':720}.get(request.args.get('range'),24)
+    table='samples' if hours==1 else 'minutes'
+    node=request.args.get('node','server')
+    with db() as c:
+        if node=='server':rows=c.execute(f'SELECT * FROM {table} WHERE ts>=? ORDER BY ts',(time.time()-hours*3600,)).fetchall()
+        elif node in [a['id'] for a in load().get('agents',[])]:rows=c.execute(f'SELECT * FROM node_{table} WHERE node=? AND ts>=? ORDER BY ts',(node,time.time()-hours*3600)).fetchall()
+        else:return jsonify(message='节点不存在'),404
+    # Average buckets, instead of simply dropping samples, for long views.
+    buckets={};width=max(10 if hours==1 else 60,int(hours*3600/360))
+    for row in rows:
+        key=row['ts']//width*width;buckets.setdefault(key,[]).append(json.loads(row['data']))
+    points=[{'ts':key,**{k:sum(x[k] for x in values)/len(values) for k in values[0]}} for key,values in buckets.items()]
+    return jsonify(points=points,range=request.args.get('range','24h'),resolution_seconds=width,source=source('collector',35))
 
-        return jsonify({
-            "cpu": {
-                "total": psutil.cpu_percent(interval=None),
-                "percpu": [round(x, 1) for x in psutil.cpu_percent(interval=None, percpu=True)],
-            },
-            "mem": {
-                "percent": mem.percent,
-                "used": mem.used,
-                "total": mem.total,
-                "available": mem.available,
-            },
-            "net": {
-                "tx": tx, "rx": rx, "total_tx": total_tx, "total_rx": total_rx,
-                "ifaces": _collect_ifaces(),
-                "conns": _collect_conns(),
-            },
-            "disks": _collect_disks(disk_rates),
-            "system": {
-                "load": [round(x, 2) for x in load],
-                "procs": len(psutil.pids()),
-                "boot_time": datetime.datetime.fromtimestamp(psutil.boot_time()).strftime("%Y-%m-%d %H:%M:%S"),
-                "uptime": int(time.time() - psutil.boot_time()),
-                "kernel": uname.release,
-                "hostname": socket.gethostname(),
-                "public_ip": monitor.get_public_ip(),
-                "server_time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "os": _STATIC_INFO["os"],
-                "cpu_model": _STATIC_INFO["cpu_model"],
-                "cpu_cores": psutil.cpu_count(logical=True) or 0,
-            },
-        })
-    except Exception as e:
-        return jsonify({"error": "collect_failed", "message": str(e)}), 500
+@app.get('/api/nodes')
+@authenticated
+def nodes():return jsonify(items=list_nodes(load()))
 
+@app.post('/api/agents')
+@authenticated
+def add_agent():
+    import hashlib
+    cfg=load()
+    if len(cfg.get('agents',[]))>=10:return jsonify(message='最多 10 个采集节点'),400
+    name=str((request.get_json() or {}).get('name','新设备'))[:80]
+    token=secrets.token_urlsafe(32);id=secrets.token_hex(6)
+    cfg.setdefault('agents',[]).append({'id':id,'name':name,'created':time.time(),'token_hash':hashlib.sha256(token.encode()).hexdigest()})
+    save(cfg);return jsonify(id=id,token=token,name=name),201
 
-if __name__ == "__main__":
-    # 出于安全考虑，仅监听本地，由 Nginx 反向代理对外发布
-    app.run(host="127.0.0.1", port=5000, threaded=True)
+@app.delete('/api/agents/<id>')
+@authenticated
+def remove_agent(id):
+    cfg=load();cfg['agents']=[a for a in cfg.get('agents',[]) if a['id']!=id];save(cfg)
+    from store import alert
+    alert('node-offline:'+id,'',active=False)
+    for key in ['cpu','mem','disk']:alert('resource:'+id+':'+key,'',active=False)
+    return jsonify(ok=True)
+
+@app.post('/api/agent/report')
+def agent_report():
+    agent=authenticate_agent(request.headers.get('Authorization','').removeprefix('Bearer '),load())
+    if not agent:return jsonify(error='invalid_agent'),401
+    old=cache('node:'+agent['id'])
+    if old['updated'] and time.time()-old['updated']<5:return jsonify(error='too_frequent'),429
+    try:data=validate_report(request.get_json() or {})
+    except (KeyError,TypeError,ValueError,AttributeError):return jsonify(error='invalid_report'),400
+    data['system']['public_ip']=request.remote_addr
+    receive(agent,data);return jsonify(ok=True,received_at=time.time())
+
+@app.get('/api/services/<id>/history')
+@authenticated
+def service_history(id):
+    with db() as c:
+        rows=[dict(r) for r in c.execute('SELECT * FROM checks WHERE service=? AND ts>? ORDER BY ts DESC LIMIT 1440',(id,time.time()-86400))]
+        summary=c.execute("SELECT COUNT(*) n, SUM(status='up') good FROM checks WHERE service=? AND ts>?",(id,time.time()-86400)).fetchone()
+    return jsonify(checks=rows,availability=round(100*summary['good']/summary['n'],2) if summary['n'] else None)
+
+@app.get('/api/alerts')
+@authenticated
+def notifications():return jsonify(items=alerts())
+
+@app.post('/api/alerts/seen')
+@authenticated
+def seen():
+    with db() as c:c.execute('UPDATE alerts SET seen=1')
+    return jsonify(ok=True)
+
+@app.get('/api/config')
+@authenticated
+def config_get():return jsonify(public(load()))
+
+@app.put('/api/config')
+@authenticated
+def config_put():
+    try:return jsonify(update(request.get_json() or {}))
+    except (ValueError,TypeError,KeyError,ZoneInfoNotFoundError):return jsonify(message='配置无效，请检查地址、时区、状态码和必填字段'),400
+
+DIST=Path(os.environ.get('PANEL_DIST',Path(__file__).parent.parent/'frontend/dist')).resolve()
+@app.get('/')
+@app.get('/<path:path>')
+def static(path='index.html'):
+    if path.startswith('api/'):return jsonify(error='not_found'),404
+    if path in ['login.html','settings.html']:path='index.html'
+    if not (DIST/path).is_file():return send_from_directory(DIST,'index.html')
+    return send_from_directory(DIST,path)
+
+if __name__=='__main__':app.run(host='127.0.0.1',port=int(os.environ.get('PORT','5000')))

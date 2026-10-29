@@ -6,3 +6,26 @@ env/
 
 backend/config.json
 config.json
+backend/data/
+frontend/node_modules/
+frontend/dist/
+.pytest_cache/
+*.sqlite3*
+
+.env
+.env.*
+!.env.example
+**/agent-config.json
+**/config.json
+**/data/
+**/status.json
+**/*.log
+**/node_modules/
+**/dist/
+*.zip
+*.tar.gz
+coverage/
+
+# Fictional source examples, never runtime state
+!examples/news/data/
+!examples/news/data/*.json

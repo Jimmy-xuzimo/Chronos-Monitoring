@@ -1,212 +1,29 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#e0e5ec" />
-  <meta name="robots" content="noindex, nofollow" />
-  <title>CHRONOS // 个人控制台</title>
-
-  <link rel="stylesheet" href="css/base.css?v=3" />
-  <link rel="stylesheet" href="css/panel.css?v=3" />
-
-  <!-- 配置 + 偏好 + 设备识别需尽早执行，避免布局闪动 -->
-  <script src="js/config.js?v=3"></script>
-  <script src="js/prefs.js?v=3"></script>
-  <script src="js/i18n.js?v=3"></script>
-  <script src="js/device.js?v=3"></script>
-</head>
-
-<body data-page="panel">
-  <div class="scanlines" aria-hidden="true"></div>
-
-  <!-- ============ 顶栏 ============ -->
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">CHRONOS<span class="dot pulse"></span></span>
-      <span class="brand-sub" data-i18n="brand.sub">PERSONAL PANEL // 个人控制台</span>
-    </div>
-    <div class="topbar-right">
-      <span class="chip ok" id="conn-status"><span class="dot ok pulse"></span><span data-i18n="conn.ok">链路正常</span></span>
-      <span class="chip plain" id="device-badge">DEVICE: --</span>
-      <span class="chip plain" id="chip-clock">--:--</span>
-      <span class="chip plain sys-ready">SYS.READY // v2.0</span>
-      <a class="btn ghost" id="settings-btn" href="settings.html" data-i18n="common.settings">设置</a>
-      <button class="btn ghost" id="logout-btn" type="button" data-i18n="common.logout">退出登录</button>
-    </div>
-  </header>
-
-  <!-- ============ 仪表盘 ============ -->
-  <main class="dash">
-    <!-- 时钟 -->
-    <section class="panel p-clock" data-zoom="time">
-      <div class="panel-head">
-        <span data-i18n="panel.time">TIME // 时间</span>
-        <span class="head-right"><span class="dot pulse"></span></span>
-      </div>
-      <div class="panel-body">
-        <div class="clock-wrap">
-          <div class="clock-date" id="clock-date">LOADING...</div>
-          <div class="clock-time pixel" id="clock-time">00:00:00</div>
-          <div class="clock-meta" id="clock-meta">UTC+08:00 · CN</div>
-          <div class="clock-hex" id="clock-hex" aria-hidden="true">00 00 00 00 00 00 00 00</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 系统概览 -->
-    <section class="panel p-system" data-zoom="system">
-      <div class="panel-head">
-        <span data-i18n="panel.system">SYSTEM OVERVIEW // 系统概览</span>
-        <span class="head-right"><span class="chip plain" data-i18n="sys.server">服务器</span></span>
-      </div>
-      <div class="panel-body">
-        <div class="sys-grid">
-          <div>
-            <div class="label" data-i18n="sys.hostname">HOSTNAME 主机名</div>
-            <div class="value" id="sys-hostname">--</div>
-          </div>
-          <div>
-            <div class="label" data-i18n="sys.os">OS 操作系统</div>
-            <div class="value truncate" id="sys-os">--</div>
-          </div>
-          <div>
-            <div class="label" data-i18n="sys.kernel">KERNEL 内核</div>
-            <div class="value truncate" id="sys-kernel">--</div>
-          </div>
-          <div>
-            <div class="label" data-i18n="sys.uptime">UPTIME 运行时长</div>
-            <div class="value" id="sys-uptime">--</div>
-          </div>
-          <div>
-            <div class="label" data-i18n="sys.procs">PROCESSES 进程</div>
-            <div class="value" id="sys-procs">--</div>
-          </div>
-          <div>
-            <div class="label" data-i18n="sys.load">LOAD AVG 负载</div>
-            <div class="value" id="sys-load">--</div>
-          </div>
-          <div>
-            <div class="label" data-i18n="sys.cores">CORES 核心</div>
-            <div class="value" id="sys-cores">--</div>
-          </div>
-          <div class="wide">
-            <div class="label" data-i18n="sys.ip">PUBLIC IP 公网地址</div>
-            <div class="value ip-value" id="sys-ip" title="">Checking...</div>
-          </div>
-          <div class="wide">
-            <div class="label" data-i18n="sys.cpumodel">CPU MODEL 处理器</div>
-            <div class="value truncate" id="sys-cpumodel">--</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 核心入口导航 -->
-    <section class="panel p-nav" data-zoom="nav">
-      <div class="panel-head">
-        <span data-i18n="panel.nav">QUICK ACCESS // 核心入口</span>
-        <span class="head-right"><span class="dot pulse"></span></span>
-      </div>
-      <div class="panel-body">
-        <div class="nav-grid" id="nav-grid"></div>
-      </div>
-    </section>
-
-    <!-- CPU 曲线 -->
-    <section class="panel p-cpu" data-zoom="cpu">
-      <div class="panel-head">
-        <span data-i18n="panel.cpu">CPU LOAD HISTORY // 负载历史</span>
-        <span class="head-right"><span class="value orange" style="font-size:16px;font-weight:800" id="cpu-val">0%</span></span>
-      </div>
-      <div class="panel-body">
-        <div class="chart-box">
-          <canvas id="cpu-chart"></canvas>
-          <div class="chart-fallback" id="chart-fallback-cpu">CHART ENGINE OFFLINE</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 网络 -->
-    <section class="panel p-net" data-zoom="net">
-      <div class="panel-head">
-        <span data-i18n="panel.net">NETWORK I/O // 网络</span>
-        <span class="head-right">
-          <span class="io-r" id="net-up">0 B/s</span>
-          <span class="io-w" id="net-down">0 B/s</span>
-        </span>
-      </div>
-      <div class="panel-body">
-        <div class="chart-box">
-          <canvas id="net-chart"></canvas>
-          <div class="chart-fallback" id="chart-fallback-net">CHART ENGINE OFFLINE</div>
-        </div>
-        <div class="row-between mt8" style="font-size:10px">
-          <span class="muted"><span data-i18n="net.total.up">累计上行</span> ↑ <span class="io-r" id="net-total-up">0 B</span></span>
-          <span class="muted"><span data-i18n="net.total.down">累计下行</span> ↓ <span class="io-w" id="net-total-down">0 B</span></span>
-        </div>
-      </div>
-    </section>
-
-    <!-- 内存 -->
-    <section class="panel p-mem" data-zoom="mem">
-      <div class="panel-head">
-        <span data-i18n="panel.mem">MEMORY // 内存</span>
-        <span class="head-right"><span class="dot pulse"></span></span>
-      </div>
-      <div class="panel-body">
-        <div class="mem-block">
-          <div class="row-between">
-            <span class="value">RAM</span>
-            <span class="muted"><span id="mem-used">0</span> / <span id="mem-total">0</span></span>
-          </div>
-          <div class="bar tall"><span id="mem-bar"></span></div>
-          <div class="row-between">
-            <span class="hint" id="mem-percent" style="color:var(--orange);font-weight:700">0% USED</span>
-            <span class="hint"><span data-i18n="mem.avail">可用</span> <span id="mem-avail">--</span></span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 存储 -->
-    <section class="panel p-storage" data-zoom="storage">
-      <div class="panel-head">
-        <span data-i18n="panel.storage">STORAGE // 存储</span>
-        <span class="head-right"><span class="chip plain" id="disk-count">0 MOUNTS</span></span>
-      </div>
-      <div class="panel-body">
-        <div id="disk-list" class="scroll-y">
-          <div class="hint" data-i18n="storage.loading">读取中...</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 联系方式 -->
-    <section class="panel p-contact" data-zoom="contact">
-      <div class="panel-head">
-        <span data-i18n="panel.contact">CONTACT // 联系方式</span>
-        <span class="head-right"><span class="dot pulse"></span></span>
-      </div>
-      <div class="panel-body">
-        <div class="contact-list" id="contact-list"></div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ============ 面板放大详情弹窗 ============ -->
-  <div class="modal-mask" id="modal-mask" hidden>
-    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="modal-head">
-        <span id="modal-title">DETAIL</span>
-        <button class="btn ghost" id="modal-close" type="button" aria-label="Close">✕</button>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
-    </div>
-  </div>
-
-  <script src="js/chart-lite.js?v=3"></script>
-  <script src="js/auth.js?v=3"></script>
-  <script src="js/panel.js?v=3"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#10131c" />
+    <meta name="description" content="CHRONOS 个人工作台 · 课表、服务与项目动态" />
+    <title>我的工作台</title>
+    <link rel="icon" type="image/svg+xml" href="/workbench.svg" />
+    <script>
+      try {
+        const mode = localStorage.getItem("workbench-mode") || "auto";
+        document.documentElement.dataset.theme =
+          mode === "auto"
+            ? matchMedia("(prefers-color-scheme:dark)").matches
+              ? "dark"
+              : "light"
+            : mode;
+        localStorage.setItem("workbench-mode",document.documentElement.dataset.theme);
+        document.documentElement.dataset.palette =
+          localStorage.getItem("workbench-palette") || "lavender";
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

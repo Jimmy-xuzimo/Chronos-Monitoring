@@ -1,171 +1,208 @@
-# CHRONOS · PANEL
+# CHRONOS · 我的工作台
 
-**项目官网 / Project website：[jimmy-xuzimo.github.io/Chronos-Monitoring](https://jimmy-xuzimo.github.io/Chronos-Monitoring/)**
+把今日课程、设备状态、服务异常、开源项目和资讯放进同一个自托管工作台。
 
-官网支持中英双语、深浅主题与交互示意预览。网站源码与维护方式见 [website/README.md](website/README.md)。
+[项目介绍](https://jimmy-xuzimo.github.io/Chronos-Monitoring/) · [部署指南](docs/deployment.md) · [数据源格式](docs/data-sources.md) · [安全与脱敏](docs/security.md) · [问题反馈](https://github.com/Jimmy-xuzimo/Chronos-Monitoring/issues)
 
-> 一个轻量的个人服务器监控面板 —— 灰橙色工业废土风 · 服务器监控 + 核心入口导航 + 联系方式
->
-> 全设备自适应（手机 / 平板 / 电脑，横屏 / 竖屏），通过浏览器标识（User-Agent）与屏幕朝向自动切换布局。
+![CHRONOS 工作台](website/assets/banner.svg)
 
----
+**当前版本：v3 架构。** React / TypeScript / Vite 前端，Flask API，独立后台采集器，SQLite 持久化。这个仓库提供通用源码与虚构示例，不包含作者线上数据、课表、入口地址、数据库或凭证。介绍页中的界面为演示数据，不连接真实设备。
 
-## ✨ 功能
+> A self-hosted personal workspace for calendars, server and Windows metrics, service health, GitHub activity, news archives, and bookmarks. Public sources start empty; configure your own after signing in.
 
-- **服务器监控（低资源占用）**：CPU 使用率与历史曲线、内存、网络上下行速率与曲线、磁盘用量与读写速率、系统负载、进程数、内核版本、公网 IP。
-- **低频轮询 + 后台暂停**：默认 5 秒一次；页面切到后台自动暂停，回到前台立即刷新一次，最大程度降低服务器开销。
-- **核心入口导航**：可自由配置的入口卡片，直达你的站点 / 服务 / 管理后台。
-- **联系方式**：B 站、邮箱、WhatsApp、微信（点击复制）、GitHub、500px 等图标瓦片（可增删改）。
-- **登录鉴权**：独立登录页；默认账号 `admin` / 密码 `admin123`，可在「设置」页修改，凭证持久化于后端 `config.json`。
-- **独立设置页**：外观（浅色 / 深色模式、扫描线质感）、中英文切换、轮询间隔、安全设置（修改账号密码）、会话与数据管理，集中在一页。
-- **主题与语言**：设置保存在浏览器本地（localStorage），全站（登录页 / 面板 / 设置页）即时生效并记忆。
+## 能做什么
 
-### ⚡ v2 性能优化
+| 模块 | 当前实现 |
+| --- | --- |
+| 总览 | 中国标准时间秒级时钟、六时段问候、今日课程；无课时展示下一门课的时间与地点；双设备状态及最近 24 小时 CPU / 内存曲线 |
+| 课表 | ICS 只读订阅、日 / 周 / 月视图、教师 / 地点 / 节次 / 原始备注；支持重复事件、单次调整、取消及时区解析 |
+| 设备 | 云服务器与 Windows 采集节点；每核 CPU、内存、Swap、磁盘容量与读写、网卡、连接数、进程、运行时长 |
+| 服务 | HTTP 状态、响应时间、证书剩余天数、故障恢复记录；预期状态码可配置，支持正常登录跳转 |
+| 项目 | 公开 GitHub 仓库、参与的公开 PR、合并状态、部分 PR 的 CI / 审阅、最近版本；支持搜索与置顶 |
+| 资讯 | 对接自有 JSON 资讯站，按日期与分类归档；每日 07:30 同步，支持手动请求同步 |
+| 入口 | 分组、搜索、收藏、拖动排序、改名、关联服务状态；局域网入口可以跳转 |
+| 提醒与清理 | 站内异常中心、恢复记录；可设置保留天数，每周清理到期数据 |
 
-- **零第三方依赖 / 零 CDN**：Chart.js 已移除，改用自绘轻量图表 `chart-lite.js`（Canvas 直绘、无运行时开销）；正文使用系统无衬线字体（零下载、高可读），时钟像素字体（VT323）本地化于 `frontend/fonts/`。
-- **桌面一屏布局**：≥1024px 且视口高度 ≥700px 时锁定 100dvh 四行网格（时间+概览 → 核心入口 → CPU+网络+内存 → 存储+联系），普通桌面显示器一页完整排下零滚动；较矮视口自动回退为整页滚动。
-- **渲染性能**：监控数值采用 DOM 脏检查（值不变不触碰 DOM）、磁盘列表 diff 渲染（结构不变不重建），轮询刷新的重排/重绘开销降到最低。
-- **传输优化**：Nginx 开启 gzip（level 5，平衡 2 核 CPU 与压缩率）、字体 30 天强缓存、HTML 免缓存，静态资源总大小 < 150KB。
+### 界面与交互
 
-## 📂 目录结构
+- 九种风格：纯黑、纯白、工业废土，以及六种马卡龙配色。彩色主题支持深浅模式，纯黑 / 纯白分别固定为对应明暗。
+- 课程颜色跟随主题，设置页不提供颜色或时区切换；默认以 `Asia/Shanghai` 展示课程与定时任务。
+- 明暗切换按“扩散 / 收回”交替播放，两种动画共用 900ms 非线性曲线；浏览器不支持 View Transitions 时直接切换。
+- 首次访问读取设备明暗偏好，之后保存手动选择；尊重系统“减少动态效果”。
+- 桌面总览集中展示信息；手机第一页为课表、双设备和项目，入口与资讯单独分页。表格和核心列表分页，避免把完整列表压进屏幕。
+
+### 边界
+
+面向个人登录使用；不是多用户监控平台。课表只读，不回写日历；没有服务器命令执行、重启或远程控制。告警只在站内展示，不发送邮件或推送。Windows Agent 仅主动上报，未提供一键安装器或计划任务自动配置界面。
+
+网站可用性来自**面板所在服务器探测**，不代表多地区或所有用户的访问情况。GitHub 状态可能未读取、受限或限流；未读取的检查不会显示为成功。
+
+## 快速开始：本地体验
+
+需要 **Python 3.12+、Node.js 22.12+ 和 pnpm 11**。生产环境推荐 Linux；本地 Windows 可运行 API、采集器与前端。
+
+```bash
+git clone https://github.com/Jimmy-xuzimo/Chronos-Monitoring.git
+cd Chronos-Monitoring
+python -m venv .venv
+```
+
+安装依赖并构建前端：
+
+```bash
+# Linux / macOS；Windows 使用下面的 PowerShell 命令
+.venv/bin/python -m pip install -r backend/requirements.lock
+cd frontend
+pnpm install --frozen-lockfile
+pnpm build
+cd ..
+```
+
+```powershell
+# Windows PowerShell 7，在仓库根目录执行
+.venv\Scripts\python.exe -m pip install -r backend/requirements.lock
+pnpm --dir frontend install --frozen-lockfile
+pnpm --dir frontend build
+```
+
+首次启动必须自行设置密码。初始账号为 `admin`，仓库**不提供默认密码**。
+
+```bash
+export PANEL_INITIAL_PASSWORD='请替换为你自己的长随机密码'
+export PANEL_COOKIE_SECURE=0  # 仅用于本机 HTTP 体验
+.venv/bin/python backend/app.py
+```
+
+```powershell
+$env:PANEL_INITIAL_PASSWORD = Read-Host '设置首次登录密码' -MaskInput
+$env:PANEL_COOKIE_SECURE = '0' # 仅用于本机 HTTP 体验
+.venv\Scripts\python.exe backend\app.py
+```
+
+在第二个终端启动采集器，并使用与 API 相同的 `PANEL_DATA` 路径；如未设置，两者默认均使用 `backend/data/`：
+
+```bash
+.venv/bin/python backend/collector.py
+```
+
+```powershell
+.venv\Scripts\python.exe backend\collector.py
+```
+
+访问 **http://127.0.0.1:5000/**。第一次初始化后，`PANEL_INITIAL_PASSWORD` 不再覆盖已保存密码，可从环境中移除；账号和密码在“设置 → 安全”修改。
+
+**只启动 API 不会采集指标。** HTTP API 和独立采集器必须同时运行。不要通过启动多个 API 实例来采集数据。
+
+需要前端热更新时，在第三个终端运行 `pnpm --dir frontend dev`；Vite 默认将 `/api` 转发到本机 5000 端口。后端仍需启动，生产环境使用构建后的静态文件。
+
+## 首次配置
+
+公开版的课表、服务、入口和采集节点均为空，GitHub / 资讯数据源默认停用。空白卡片是正常状态。
+
+1. **课表**：添加自己的公网 ICS 链接，填写订阅名称、学期首周日期和周数。已有订阅链接不返回前端，留空表示保留原链接。演示 ICS 见 [examples/calendar.ics](examples/calendar.ics)，需要自行托管到公网 HTTPS 地址。
+2. **网站**：填写名称、URL 与预期状态码。需要登录的服务可设置 `200,302` 等预期值；探测不会自动跟随跳转，也不登录目标服务。
+3. **入口**：添加 HTTP(S) 地址，可使用局域网 IP 和自定义端口；收藏后优先出现在入口页。入口只跳转，不意味着云服务器能监测局域网服务。
+4. **GitHub**：填写自己的用户名；可选 Token 仅保存于服务器。用户名留空停用。Token 不会让面板读取私人仓库。
+5. **资讯**：填写自己的资讯站根地址，格式见[数据源说明](docs/data-sources.md)。留空停用，不是任意 RSS 或网页抓取器。
+6. **Windows 节点**：按[部署指南](docs/deployment.md#windows-采集节点)注册 Agent 并运行，服务器节点始终由本机采集器提供。
+
+## 架构与目录
 
 ```text
-chronos-monitoring/
-├── backend/
-│   ├── app.py                 # Flask：监控采集 + 登录鉴权 + 凭证管理
-│   ├── requirements.txt
-│   └── config.json            # 首次启动自动生成（密钥 + 账号 + 密码哈希，勿提交）
-├── frontend/
-│   ├── index.html             # 主面板（需登录）
-│   ├── login.html             # 登录页
-│   ├── settings.html          # 设置页（需登录）
-│   ├── css/
-│   │   ├── base.css           # 主题变量（浅色/深色）/ 基础组件（工业废土风）
-│   │   ├── panel.css          # 主面板布局 / 设备×朝向 响应式 / 桌面一屏
-│   │   ├── settings.css       # 设置页布局
-│   │   └── login.css
-│   ├── fonts/
-│   │   ├── ShareTechMono-Regular.woff2   # 本地字体（界面等宽）
-│   │   └── VT323-Regular.woff2            # 本地字体（时钟像素数字）
-│   └── js/
-│       ├── config.js          # 配置区（接口 / 轮询 / 入口 / 联系方式）
-│       ├── prefs.js           # 偏好设置（主题 / 语言 / 轮询 / 扫描线，localStorage）
-│       ├── i18n.js            # 中英文文案字典 + DOM 应用器
-│       ├── device.js          # 浏览器标识 + 朝向识别
-│       ├── chart-lite.js      # 自绘轻量图表（替代 Chart.js，零依赖）
-│       ├── auth.js            # 接口封装 + 会话鉴权 + 登录页逻辑
-│       ├── panel.js           # 主面板逻辑（脏检查 + diff 渲染）
-│       └── settings.js        # 设置页逻辑
-├── config/
-│   ├── nginx.conf             # Nginx 站点 + /api 反代示例
-│   └── chronos-monitoring.service   # Systemd 开机自启
-└── README.md
+浏览器 ──HTTPS── Nginx ── /api/ ── Flask API ── SQLite
+                   └── frontend/dist          ↑
+                                 独立 collector
+                            指标 / 网站 / ICS / GitHub / 资讯
+Windows Agent ──主动 HTTPS 上报── /api/agent/report
 ```
 
----
-
-## 🚀 部署（Ubuntu / Debian 服务器）
-
-### 第一步：上传项目
-
-将本项目放到服务器，例如 `/opt/chronos-monitoring`：
-
-```bash
-sudo mkdir -p /opt/chronos-monitoring
-# 用 scp / SFTP / git 把项目文件传入 /opt/chronos-monitoring
+```text
+backend/       Flask API、采集器、Windows Agent、集成与测试
+frontend/      React / TypeScript / Vite 工作台源码
+config/        Nginx、systemd 示例（专用 chronos 用户）
+docs/          部署、数据源与安全说明
+examples/      虚构 ICS、资讯 JSON 示例，不含个人数据
+scripts/       Agent 注册辅助工具、公开文件检查
+website/       GitHub Pages 项目介绍页，与登录面板分开部署
 ```
 
-### 第二步：安装后端依赖
+## 采集、存储与告警
 
-```bash
-sudo apt update
-sudo apt install python3-pip -y
-pip3 install -r /opt/chronos-monitoring/backend/requirements.txt --break-system-packages
-```
-
-> 若服务器已启用虚拟环境（venv），请在虚拟环境中执行 `pip install -r requirements.txt`。
-
-测试运行：
-
-```bash
-python3 /opt/chronos-monitoring/backend/app.py
-# 正常输出：Running on http://127.0.0.1:5000
-# 首次运行会在 backend/ 下生成 config.json
-# 按 Ctrl+C 停止
-```
-
-### 第三步：配置开机自启
-
-```bash
-sudo cp /opt/chronos-monitoring/config/chronos-monitoring.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now chronos-monitoring
-sudo systemctl status chronos-monitoring      # 查看状态
-```
-
-### 第四步：配置 Nginx
-
-```bash
-sudo apt install nginx -y
-sudo mkdir -p /var/www/chronos-monitoring
-sudo cp -r /opt/chronos-monitoring/frontend/* /var/www/chronos-monitoring/
-
-sudo cp /opt/chronos-monitoring/config/nginx.conf /etc/nginx/conf.d/chronos-monitoring.conf
-sudo nano /etc/nginx/conf.d/chronos-monitoring.conf   # 修改 server_name 为你的域名或公网 IP
-sudo nginx -t                                          # 校验配置
-sudo systemctl restart nginx
-```
-
-浏览器访问 `http://你的域名或IP/`，会跳转到登录页。
-
-> 建议申请 HTTPS：`sudo certbot --nginx -d 你的域名`。启用 HTTPS 后，请把 `backend/app.py` 中的 `SESSION_COOKIE_SECURE` 改为 `True` 并重启服务。
-
-### 第五步：登录并改密
-
-- 默认账号：`admin`
-- 默认密码：`admin123`
-
-登录后点击面板顶栏「设置」进入设置页，在「SECURITY // 安全设置」中填入当前密码与新账号/新密码即可（**请务必改掉默认密码**）；同页还可切换深色模式、中英文与轮询间隔。
-
----
-
-## ⚙️ 个性化配置
-
-统一在 [frontend/js/config.js](frontend/js/config.js) 中修改：
-
-| 配置项 | 说明 |
+| 项目 | 默认行为 |
 | --- | --- |
-| `API_BASE` | 生产环境保持 `/api`；本地联调可改为 `http://127.0.0.1:5000/api` |
-| `POLL_INTERVAL` | 监控轮询默认间隔（毫秒），默认 `5000`；用户可在设置页覆盖 |
-| `DEVICE_OVERRIDE` | 调试用，强制指定设备类型：`null` / `"mobile"` / `"tablet"` / `"desktop"` |
-| `ENTRIES` | 核心入口导航卡片（标题、中文名、跳转链接） |
-| `CONTACTS` | 联系方式列表（`type: "link"` 外链跳转 / `type: "copy"` 点击复制） |
+| 资源 / Agent | 每 10 秒采样；首页曲线每分钟读取 24 小时历史 |
+| 网站 | 每 600 秒探测；证书通常每日检查，失败时可能重试 |
+| ICS / GitHub | 每 15 分钟同步；修改相关配置会触发重新同步 |
+| 资讯 | 每天中国时间 07:30；未发布、失败时每 15 分钟重试 |
+| 原始资源数据 | 保留 1 天 |
+| 分钟汇总 | 保留 30 天；查询较长范围时进一步聚合 |
+| 探测、已恢复提醒、资讯 | 默认保留 90 天 |
+| 清理 | 每周一中国时间 04:00 对应周期执行；停机错过后启动补做，因此到期数据可能额外保留至下一次清理 |
 
-`ENTRIES` 与 `CONTACTS` 中均为演示占位数据（如 `example.com`、`yourname`），请替换为你自己的信息。
+保留时限可在设置修改。运行目录含 `config.json`、`panel.sqlite3` 和锁文件，须持久化并与静态网站隔离。SQLite 使用 WAL；备份、迁移与恢复见[部署指南](docs/deployment.md)。
 
-后端端口 / 监听地址在 [backend/app.py](backend/app.py) 末尾的 `app.run(...)` 处调整。
+服务连续失败 3 次进入告警，连续成功 2 次恢复；证书不足 30 天提醒、7 天升为紧急。CPU / 内存持续高负载、磁盘紧张、设备离线也可产生站内提醒。Windows 节点超过 45 秒未上报显示离线，超过 2 分钟产生提醒。
 
----
+API 返回采集时间与来源状态。同步失败保留上次成功结果并标记过期，不把课表同步异常当作“今天无课”。历史数据来自后台持续采集，关闭浏览器不会中断。
 
-## 🧭 设备适配说明
+## API 概览
 
-`frontend/js/device.js` 通过以下信息判定设备与朝向，并写入 `<html>`：
+除会话、登录及专用 Agent 上报外，个人数据接口均要求登录。修改接口需要会话中的 `X-CSRF-Token`，Agent 上报改用独立 Bearer Token。
 
-- `navigator.userAgentData.mobile`（Chromium 优先）与 `navigator.userAgent` 正则（含 iPadOS 伪装成 Mac 的特殊处理）
-- `navigator.maxTouchPoints` 触点数交叉校验
-- `matchMedia("(orientation: portrait)")` 与 `screen.orientation` 判定横竖屏
+| 路径 | 用途 |
+| --- | --- |
+| `GET /api/session`、`POST /api/login`、`POST /api/logout` | 会话与登录 |
+| `POST /api/credentials` | 修改账号密码，使其他会话失效 |
+| `GET /api/overview?node=server` | 汇总数据 |
+| `GET /api/stats?node=server` | 当前节点指标，兼容旧路径 |
+| `GET /api/history?node=server&range=24h` | 1h / 24h / 7d / 30d 历史 |
+| `GET /api/calendar`、`/api/services`、`/api/github`、`/api/news` | 数据源 |
+| `GET /api/news?date=YYYY-MM-DD`、`POST /api/news/sync` | 历史资讯与请求同步 |
+| `GET /api/services/<id>/history` | 最近 24 小时网站探测记录 |
+| `GET /api/alerts`、`POST /api/alerts/seen` | 站内提醒 |
+| `GET /api/config`、`PUT /api/config` | 脱敏配置读取与更新 |
+| `GET /api/nodes`、`POST /api/agents`、`DELETE /api/agents/<id>` | 节点查看、注册与撤销 |
+| `POST /api/agent/report` | Windows 节点上报 |
 
-结果落到 `html[data-device="mobile|tablet|desktop"]`、`html[data-orient="portrait|landscape"]`、`html[data-touch]`，由 `panel.css` 结合媒体查询渲染对应布局；即使识别异常，媒体查询也能保证布局正确降级。顶栏 `DEVICE` 徽章会实时显示当前判定结果。
+## 安全与公开版说明
 
----
+- 密码经 PBKDF2 保存，会话密钥首次随机生成；Cookie 使用 HttpOnly / SameSite，生产必须启用 Secure 并使用 HTTPS。
+- 登录节流、CSRF 检查、请求大小限制；订阅拉取校验公网地址，逐跳绑定 DNS 结果，设置大小 / 超时限制。
+- 订阅和探测只支持公网 HTTP(S) 的 80 / 443 端口；GitHub Token、订阅 URL、设备 Token 不应写进源码或前端。
+- 公网探测不支持私网、回环、链路本地地址及自定义端口；可跳转的局域网入口与可监测对象是两回事。
+- 示例 systemd 使用专用用户，采集部分系统信息时可能权限不足；此时应明确显示未知，而非放宽整机权限。
+- 没有安全审计或生产 SLA 承诺。详细限制与脱敏清单见[安全说明](docs/security.md)。
 
-## ❓ 常见问题
+## 验证与贡献
 
-- **公网 IP 显示 `Checking...` 或 `N/A`**：后端会通过 `api64.ipify.org` 获取，若服务器出网受限则不可用；可自行替换 `app.py` 中的取 IP 逻辑。
-- **忘记密码**：删除 `backend/config.json` 后重启服务，会以默认账号密码重新生成。
+```bash
+# 已安装后端依赖后；测试另需 pytest
+.venv/bin/python -m pip install pytest
+.venv/bin/python -m pytest backend/tests -q
+pnpm --dir frontend build
+python scripts/check_public.py
+```
 
----
+Windows 将 `.venv/bin/python` 替换为 `.venv\Scripts\python.exe`。测试使用临时数据目录与虚构课表 / 节点，不连接个人设备。CI 执行后端测试、前端构建及公开文件检查；介绍页由单独的 Pages 工作流发布。
 
-## 📄 许可
+提交前不要包含 `backend/data/`、运行配置、Token、真实课程、私人入口、数据库、日志或真实设备截图。欢迎通过 Issue / PR 说明复现步骤、操作系统和浏览器版本。
 
-本项目为通用模板，可自由用于个人服务器部署与二次修改。请勿将默认账号密码直接暴露在公网，部署后请立即修改。
+## 常见问题
+
+**登录后一直等待数据？** 检查独立 collector 是否运行、API 与 collector 的 `PANEL_DATA` 是否一致，以及该目录是否可写。
+
+**本地 HTTP 登录后 Cookie 不生效？** 本机体验可设置 `PANEL_COOKIE_SECURE=0`；生产切回 `1` 并通过 HTTPS 访问。
+
+**GitHub 显示未读取？** 公开 PR 列表与逐个查询检查是分开的。无 Token 每轮最多补充最近 1 个进行中 PR，有 Token 为 3 个；其余明确显示未读取。来源受限时保留旧数据。
+
+**资讯不能读取？** 需要 `data/index.json` 和日期 JSON，不能只提供新闻网页。发布当天的日期、站点公网可达性及 JSON 结构都要满足约定。
+
+**时区在哪里改？** 当前界面固定中国时区，课表事件仍按 ICS 自身时区正确解析；不提供界面时区开关。
+
+**忘记密码？** 不要直接删除配置或数据库；它们还保存订阅与设备授权。先离线备份，在服务器上使用 `settings.hash_password()` 更新配置中的密码并递增 `auth_version`，重启 API。具体步骤见[部署指南](docs/deployment.md#恢复账号)。
+
+**从旧版升级？** v3 替换了旧版静态前端和采集方式。不要把新旧进程、运行目录混用；先预览并备份原静态目录、配置、数据库和服务文件，使用独立数据目录迁移后再切换 Nginx。
+
+## 使用许可
+
+延续原仓库说明：本项目可用于个人服务器部署与二次修改。本仓库尚未附标准开源许可证；公开可见不等于 MIT / Apache 授权，其他使用或再分发需求请先联系仓库维护者。

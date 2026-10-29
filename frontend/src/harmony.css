@@ -1,0 +1,342 @@
+/* One palette source for chrome, panels, text, controls and plots. */
+:root {
+  --motion: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-spring: cubic-bezier(0.2, 1.25, 0.35, 1);
+  --chart-cpu: var(--accent);
+  --chart-mem: color-mix(in srgb, var(--p2) 50%, #697f79);
+  --chart-rx: color-mix(in srgb, var(--p3) 50%, #547d97);
+  --chart-tx: color-mix(in srgb, var(--p2) 50%, #97805f);
+}
+:root[data-theme="light"] {
+  --bg: color-mix(in srgb, var(--p1) 10%, #fff);
+  --chrome: color-mix(in srgb, var(--p1) 14%, #fffffff0);
+  --surface: color-mix(in srgb, var(--p1) 7%, #ffffffdd);
+  --surface2: color-mix(in srgb, var(--p1) 13%, #ffffffdd);
+  --surface3: color-mix(in srgb, var(--p1) 25%, #f3f5f7);
+  --text: #20262f;
+  --muted: color-mix(in srgb, var(--p1) 20%, #4a535f);
+  --subtle: color-mix(in srgb, var(--p1) 15%, #606a79);
+  --border: color-mix(in srgb, var(--p1) 32%, #d3d9e1);
+  --popover: color-mix(in srgb, var(--p1) 12%, #fffffff5);
+  --accent-bg: color-mix(in srgb, var(--accent) 13%, transparent);
+}
+:root[data-theme="dark"] {
+  --bg: color-mix(in srgb, var(--p1) 7%, #101319);
+  --chrome: color-mix(in srgb, var(--p1) 10%, #171b22);
+  --surface: color-mix(in srgb, var(--p1) 8%, #171b22ec);
+  --surface2: color-mix(in srgb, var(--p1) 14%, #242932e8);
+  --surface3: color-mix(in srgb, var(--p1) 20%, #343a44);
+  --text: #f6f7f9;
+  --muted: color-mix(in srgb, var(--p1) 20%, #e0e5eb);
+  --subtle: color-mix(in srgb, var(--p1) 15%, #bac3cf);
+  --border: color-mix(in srgb, var(--p1) 24%, #47515f);
+  --accent: color-mix(in srgb, var(--p1) 78%, #fff);
+  --accent-bg: color-mix(in srgb, var(--accent) 15%, transparent);
+  --popover: color-mix(in srgb, var(--p1) 11%, #1d232d);
+  --chart-mem: color-mix(in srgb, var(--p2) 70%, #b4d6c3);
+  --chart-rx: color-mix(in srgb, var(--p3) 75%, #b5d7e9);
+  --chart-tx: color-mix(in srgb, var(--p2) 70%, #e4cfaa);
+}
+:root[data-palette="lavender"][data-theme="light"] {
+  --accent: #70509c;
+}
+:root[data-palette="rose"][data-theme="light"] {
+  --accent: #9b456e;
+}
+:root[data-palette="mint"][data-theme="light"] {
+  --accent: #2c755f;
+}
+:root[data-palette="sky"][data-theme="light"] {
+  --accent: #386d9b;
+}
+:root[data-palette="peach"][data-theme="light"] {
+  --accent: #925f3d;
+}
+:root[data-palette="lemon"][data-theme="light"] {
+  --accent: #737026;
+}
+:root[data-palette="industrial"][data-theme="dark"] {
+  --bg: #17191b;
+  --chrome: #202326;
+  --surface: #222629f5;
+  --surface2: #2b3033;
+  --surface3: #3b4144;
+  --text: #f4f1e8;
+  --muted: #d1c9b8;
+  --subtle: #b6af9f;
+  --border: #535950;
+  --accent: #fa8c44;
+  --accent-bg: #fa8c4425;
+  --p1: #fa8c44;
+  --p2: #c8bda7;
+  --p3: #7a8b80;
+  --popover: #282c2f;
+  --chart-cpu: #fa8c44;
+  --chart-mem: #d4c6a4;
+  --chart-rx: #9bb7a7;
+  --chart-tx: #e0b481;
+}
+:root[data-palette="industrial"][data-theme="light"] {
+  --bg: #e5e1d8;
+  --chrome: #eae5db;
+  --surface: #f0ece3f0;
+  --surface2: #ddd8cd;
+  --surface3: #ccc6b9;
+  --text: #252b2b;
+  --muted: #50574e;
+  --subtle: #646b60;
+  --border: #9b9c92;
+  --accent: #ad481e;
+  --accent-bg: #ad481e19;
+  --p1: #dd8855;
+  --p2: #b5ad93;
+  --p3: #839589;
+  --popover: #eee8dc;
+  --chart-cpu: #ad481e;
+  --chart-mem: #827149;
+  --chart-rx: #4e7763;
+  --chart-tx: #9d6d35;
+}
+:root[data-palette="black"][data-theme="dark"] {
+  --bg: #000;
+  --chrome: #000;
+  --surface: #000;
+  --surface2: #111;
+  --surface3: #222;
+  --text: #fff;
+  --muted: #ddd;
+  --subtle: #bbb;
+  --border: #444;
+  --accent: #fff;
+  --accent-bg: #222;
+  --popover: #0c0c0c;
+  --p1: #ccc;
+  --p2: #aaa;
+  --p3: #888;
+  --chart-cpu: #fff;
+  --chart-mem: #bbb;
+  --chart-rx: #ddd;
+  --chart-tx: #888;
+}
+:root[data-palette="white"][data-theme="light"] {
+  --bg: #fff;
+  --chrome: #fff;
+  --surface: #fff;
+  --surface2: #f5f5f5;
+  --surface3: #e9e9e9;
+  --text: #111;
+  --muted: #444;
+  --subtle: #666;
+  --border: #ccc;
+  --accent: #222;
+  --accent-bg: #eaeaea;
+  --popover: #fff;
+  --p1: #aaa;
+  --p2: #ccc;
+  --p3: #ddd;
+  --chart-cpu: #111;
+  --chart-mem: #555;
+  --chart-rx: #333;
+  --chart-tx: #888;
+}
+.sidebar {
+  background: var(--chrome);
+}
+.palette-popover {
+  background: var(--popover);
+  border-color: var(--border);
+  transform-origin: top right;
+  animation: menu-in 0.32s var(--motion-spring) both;
+}
+.palette-popover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -18px;
+  height: 18px;
+  background: transparent;
+}
+.auto-menu.is-closing .palette-popover {
+  animation: menu-out 0.18s cubic-bezier(0.4, 0, 1, 1) both;
+  pointer-events: none;
+}
+.color-orb {
+  background: linear-gradient(135deg, var(--p1), var(--p2));
+  box-shadow:
+    inset 0 0 0 3px #fff4,
+    0 2px 7px #0002;
+}
+[data-theme] .eyebrow,
+[data-theme] .entry-main small,
+[data-theme] .source-note,
+[data-theme] .timeline-body small,
+[data-theme] .news-preview small,
+[data-theme] .pr-preview small {
+  color: var(--subtle);
+}
+[data-theme] .search input::placeholder,
+[data-theme] input::placeholder {
+  color: var(--subtle);
+}
+[data-theme] .next-course {
+  border-color: var(--border);
+}
+[data-theme] .home-bento .card-head h2 {
+  color: var(--text);
+}
+[data-palette] .brand-mark {
+  filter: drop-shadow(
+    0 3px 7px color-mix(in srgb, var(--accent) 15%, transparent)
+  );
+}
+.badge.open,
+.badge.merged {
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+.primary {
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--accent) 90%, var(--p1)),
+    var(--accent)
+  );
+}
+.next-course {
+  background: linear-gradient(
+    130deg,
+    color-mix(in srgb, var(--p1) 18%, var(--surface)),
+    color-mix(in srgb, var(--p2) 14%, var(--surface))
+  );
+}
+.dual-node {
+  background: linear-gradient(115deg, var(--accent-bg), var(--surface2));
+}
+.dual-node:nth-child(2) {
+  background: linear-gradient(
+    115deg,
+    color-mix(in srgb, var(--p2) 10%, var(--surface2)),
+    var(--surface2)
+  );
+}
+.meter i {
+  background: linear-gradient(
+    90deg,
+    var(--accent),
+    color-mix(in srgb, var(--accent) 65%, var(--p2))
+  );
+}
+button,
+a,
+input,
+select {
+  transition:
+    background 0.3s var(--motion),
+    color 0.3s var(--motion),
+    border-color 0.3s var(--motion),
+    box-shadow 0.35s var(--motion),
+    transform 0.35s var(--motion-spring);
+}
+button:active:not(:disabled),
+a:active {
+  transform: scale(0.97);
+}
+.sidebar nav button {
+  transition:
+    background 0.4s var(--motion),
+    color 0.4s var(--motion),
+    box-shadow 0.4s var(--motion),
+    transform 0.4s var(--motion-spring);
+}
+.sidebar nav button.active {
+  box-shadow:
+    inset 0 1px color-mix(in srgb, var(--accent) 20%, transparent),
+    0 4px 15px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+dialog[open] {
+  animation: dialog-in 0.4s var(--motion-spring) both;
+}
+dialog[open]::backdrop {
+  animation: backdrop-in 0.3s var(--motion) both;
+}
+.page-heading {
+  animation: page-in 0.45s var(--motion) both;
+}
+.card {
+  transition:
+    transform 0.45s var(--motion-spring),
+    background 0.35s var(--motion),
+    border-color 0.35s var(--motion);
+}
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-9px) scale(0.9);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@keyframes menu-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.96);
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(25px) scale(0.94);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (min-width: 1050px) {
+  .topbar {
+    background: transparent;
+    box-shadow: none;
+  }
+}
+@media (max-width: 1049px) {
+  .topbar {
+    background: var(--chrome);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

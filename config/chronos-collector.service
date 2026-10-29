@@ -1,0 +1,26 @@
+[Unit]
+Description=CHRONOS Workspace independent collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chronos
+Group=chronos
+StateDirectory=chronos
+StateDirectoryMode=0700
+WorkingDirectory=/opt/chronos/backend
+Environment=PANEL_DATA=/var/lib/chronos
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/chronos/.venv/bin/python -X utf8 collector.py
+Restart=always
+RestartSec=5
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/chronos
+
+[Install]
+WantedBy=multi-user.target

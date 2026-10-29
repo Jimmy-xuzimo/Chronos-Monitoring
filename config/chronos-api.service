@@ -1,0 +1,27 @@
+[Unit]
+Description=CHRONOS Workspace v3 API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=chronos
+Group=chronos
+StateDirectory=chronos
+StateDirectoryMode=0700
+WorkingDirectory=/opt/chronos/backend
+Environment=PANEL_DATA=/var/lib/chronos
+Environment=PANEL_COOKIE_SECURE=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/chronos/.venv/bin/gunicorn --workers 1 --threads 4 --bind 127.0.0.1:5002 --timeout 30 app:app
+Restart=always
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/chronos
+
+[Install]
+WantedBy=multi-user.target

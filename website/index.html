@@ -1,663 +1,337 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN" data-theme="light" data-palette="iris">
   <head>
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
     />
-    <meta name="color-scheme" content="dark light" />
-    <title>CHRONOS — 你的服务器，一目了然。</title>
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f3f1eb" />
+    <title>CHRONOS · 日程、设备与项目，同一张桌面</title>
     <meta
       name="description"
-      content="CHRONOS 是为个人服务器打造的轻量监控面板。CPU、内存、网络与磁盘状态，服务入口导航，中英双语与深浅主题，自托管掌控。"
+      content="CHRONOS 是可自托管的个人工作台：ICS 课表、服务器与 Windows 指标、网站状态、GitHub、资讯归档和收藏入口。React、Flask、SQLite，公开源码不含私人数据。"
     />
     <link
       rel="canonical"
       href="https://jimmy-xuzimo.github.io/Chronos-Monitoring/"
     />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="zh_CN" />
-    <meta property="og:locale:alternate" content="en_US" />
-    <meta
-      property="og:title"
-      content="CHRONOS — Your server. In perspective."
-    />
+    <meta property="og:title" content="CHRONOS · 我的工作台" />
     <meta
       property="og:description"
-      content="A lightweight, self-hosted monitoring panel for your personal server. 轻量监控，自在掌控。"
+      content="把日程、设备与项目，放回同一张桌面。一个可自托管的个人工作空间。"
     />
-    <meta
-      property="og:url"
-      content="https://jimmy-xuzimo.github.io/Chronos-Monitoring/"
-    />
-    <meta
-      property="og:image"
-      content="https://jimmy-xuzimo.github.io/Chronos-Monitoring/assets/social.png"
-    />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta
-      property="og:image:alt"
-      content="CHRONOS — lightweight server monitoring / 轻量服务器监控"
-    />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#111311" />
-    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
-    <script src="preferences.js"></script>
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
     <link rel="stylesheet" href="style.css" />
-    <script src="app.js" defer></script>
   </head>
   <body>
-    <a class="skip" href="#main" data-i18n="skip">跳转到内容</a>
-    <header class="site-header">
-      <div class="nav-wrap container">
-        <a class="brand" href="#" aria-label="CHRONOS"
-          ><svg viewBox="0 0 32 32" aria-hidden="true">
-            <path d="M6 4h20v5l-8 7 8 7v5H6v-5l8-7-8-7z" />
-            <path d="M12 8h8m-8 16h8" /></svg
-          >CHRONOS<span class="brand-dot">/</span></a
-        >
-        <nav class="desktop-nav" aria-label="主导航" data-label="navigation">
-          <a href="#features" data-i18n="navFeatures">功能</a
-          ><a href="#preview" data-i18n="navPreview">面板预览</a
-          ><a href="#start" data-i18n="navStart">快速开始</a>
-        </nav>
-        <div class="nav-actions">
-          <button class="language" id="language" aria-label="Switch to English">
-            EN <span aria-hidden="true">↗</span>
-          </button>
-          <button
-            class="theme-button"
-            id="theme"
-            aria-label="主题：跟随系统"
-            title="主题：跟随系统"
-          >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="8" />
-              <path d="M12 4v16" />
-              <path class="theme-fill" d="M12 4a8 8 0 0 1 0 16Z" />
-            </svg>
-          </button>
-          <a
-            class="nav-github"
-            href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring"
-            >GitHub <span aria-hidden="true">↗</span></a
-          >
-          <button
-            class="menu-button"
-            id="menu"
-            aria-expanded="false"
-            aria-controls="mobile-nav"
-            aria-label="打开导航"
-            data-label="openMenu"
-          >
-            <span></span><span></span>
-          </button>
-        </div>
-      </div>
-      <nav
-        id="mobile-nav"
-        class="mobile-nav container"
-        aria-label="移动导航"
-        data-label="mobileNavigation"
-        hidden
+    <a class="skip" href="#main">跳到正文</a>
+    <header class="top">
+      <a class="wordmark" href="#"
+        ><img
+          src="assets/favicon.svg"
+          width="30"
+          height="30"
+          alt=""
+        />CHRONOS<span>我的工作台</span></a
       >
-        <a href="#features" data-i18n="navFeatures">功能</a
-        ><a href="#preview" data-i18n="navPreview">面板预览</a
-        ><a href="#start" data-i18n="navStart">快速开始</a
-        ><a href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring"
+      <nav aria-label="主导航">
+        <a href="#explore">探索界面</a><a href="#architecture">运行方式</a
+        ><a href="#start">开始部署</a>
+      </nav>
+      <div class="top-tools">
+        <button id="mode" aria-label="切换深色模式" title="切换明暗">◐</button
+        ><a
+          class="github-link"
+          href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring"
           >GitHub ↗</a
         >
-      </nav>
+      </div>
     </header>
-
     <main id="main">
-      <section class="hero container" aria-labelledby="hero-title">
+      <section class="hero wrap">
         <div class="hero-copy">
-          <div class="eyebrow">
-            <span class="status-dot"></span
-            ><span data-i18n="heroTag">为个人服务器而生</span
-            ><span class="tag-rule"></span><span class="mono">SELF-HOSTED</span>
-          </div>
-          <h1 id="hero-title">
-            <span data-i18n="heroLine1">你的服务器，</span><br /><span
-              class="accent"
-              data-i18n="heroLine2"
-              >一目了然。</span
-            >
-          </h1>
-          <p class="hero-desc" data-i18n="heroDesc">
-            从系统状态到服务入口，把日常需要的关键信息，收进一个轻量、清晰、属于你的面板。
+          <p class="eyebrow"><span></span> PERSONAL WORKSPACE / SELF-HOSTED</p>
+          <h1>日程、设备与项目。<br /><em>回到同一张桌面。</em></h1>
+          <p class="lead">
+            今天在哪里上课，设备运行得怎么样，项目又有了哪些进展。让这些信息自然相遇，而不是散落在十几个标签页里。
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="#start"
-              ><span data-i18n="getStarted">开始部署</span
-              ><span aria-hidden="true">↗</span></a
-            ><a
-              class="text-link"
-              href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring"
-              ><span data-i18n="viewSource">查看源代码</span
-              ><span aria-hidden="true">↗</span></a
-            >
-          </div>
-          <div class="hero-footnote">
-            <span class="cross" aria-hidden="true">+</span
-            ><span data-i18n="heroNote">自托管 · 前端零 CDN · 中英双语</span>
-          </div>
-        </div>
-        <div
-          class="hero-art"
-          aria-label="监控面板示意，非实时数据"
-          data-label="artLabel"
-        >
-          <div class="art-top mono">
-            <span>CHRONOS / SYSTEM OVERVIEW</span><span>01 — 04</span>
-          </div>
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="orbit orbit-three"></div>
-          <div class="orbital-cross cross-one">+</div>
-          <div class="orbital-cross cross-two">+</div>
-          <div class="mini-panel">
-            <div class="mini-header">
-              <span class="mono">SYS.MONITOR</span
-              ><span class="demo-chip" data-i18n="sample">示意数据</span>
-            </div>
-            <div class="mini-heading">
-              <span data-i18n="processor">处理器</span
-              ><span class="mono">CPU / 4 CORE</span>
-            </div>
-            <div class="mini-number">
-              24.8<span>%</span
-              ><svg viewBox="0 0 100 40" aria-hidden="true">
-                <path
-                  d="M0 32 10 26 20 30 30 10 40 18 50 14 60 24 70 8 80 15 90 4 100 9"
-                />
-              </svg>
-            </div>
-            <div class="mini-chart">
-              <svg
-                viewBox="0 0 400 100"
-                preserveAspectRatio="none"
-                aria-hidden="true"
-              >
-                <defs>
-                  <linearGradient id="miniGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop stop-color="#ed713d" stop-opacity=".25" />
-                    <stop offset="1" stop-color="#ed713d" stop-opacity="0" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M0 80 15 77 30 82 45 61 60 68 75 30 90 45 105 40 120 62 135 53 150 70 165 68 180 40 195 49 210 20 225 35 240 28 255 51 270 60 285 48 300 58 315 27 330 41 345 18 360 31 375 12 390 23 400 15V100H0Z"
-                  fill="url(#miniGradient)"
-                />
-                <path
-                  d="M0 80 15 77 30 82 45 61 60 68 75 30 90 45 105 40 120 62 135 53 150 70 165 68 180 40 195 49 210 20 225 35 240 28 255 51 270 60 285 48 300 58 315 27 330 41 345 18 360 31 375 12 390 23 400 15"
-                  class="chart-stroke"
-                />
-              </svg>
-            </div>
-            <div class="mini-bottom">
-              <div>
-                <span class="mono">MEMORY</span
-                ><strong>1.28 <small>/ 4 GB</small></strong>
-                <div class="meter"><i style="width: 32%"></i></div>
-              </div>
-              <div>
-                <span class="mono">STORAGE</span
-                ><strong>18.6 <small>/ 50 GB</small></strong>
-                <div class="meter"><i style="width: 37%"></i></div>
-              </div>
-            </div>
-          </div>
-          <div class="art-bottom mono">
-            <span>PERSONAL INFRASTRUCTURE</span><span>↗</span>
-          </div>
-        </div>
-      </section>
-
-      <div class="spec-strip">
-        <div class="container specs">
-          <div>
-            <strong>05<span>s</span></strong
-            ><span data-i18n="specPolling">默认轮询间隔</span>
-          </div>
-          <div>
-            <strong>00</strong><span data-i18n="specCdn">前端 CDN 依赖</span>
-          </div>
-          <div>
-            <strong>02</strong
-            ><span data-i18n="specLanguages">中文 / English</span>
-          </div>
-          <div>
-            <strong>∞</strong
-            ><span data-i18n="specControl">自托管，自主掌控</span>
-          </div>
-        </div>
-      </div>
-
-      <section id="features" class="section container">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow mono">
-              <span class="accent">01 /</span> THE ESSENTIALS
-            </p>
-            <h2 data-i18n="featuresTitle">少一点负担，多一份掌控。</h2>
-          </div>
-          <p data-i18n="featuresDesc">
-            把注意力留给真正重要的事。<br />日常运维需要的，刚好都在这里。
-          </p>
-        </div>
-        <div class="feature-grid">
-          <article class="feature feature-wide">
-            <div class="feature-top">
-              <span class="feature-icon">⌁</span
-              ><span class="mono">01.01 / MONITOR</span>
-            </div>
-            <h3 data-i18n="monitorTitle">状态，不止一个数字。</h3>
-            <p data-i18n="monitorDesc">
-              CPU
-              历史曲线、内存占用、网络上下行、磁盘用量与读写速率。让系统的每一次变化，都有迹可循。
-            </p>
-            <div class="feature-wave" aria-hidden="true">
-              <svg viewBox="0 0 600 80" preserveAspectRatio="none">
-                <path
-                  d="M0 60H40L55 53 70 60H105L120 35 135 65 150 10 165 60H210L225 52 240 60H290L305 42 320 60H365L380 35 395 67 410 7 425 60H475L490 50 505 60H600"
-                /></svg
-              ><span class="mono">CPU · MEMORY · NETWORK · DISK</span>
-            </div>
-          </article>
-          <article class="feature">
-            <div class="feature-top">
-              <span class="feature-icon">↗</span
-              ><span class="mono">01.02 / CONNECT</span>
-            </div>
-            <h3 data-i18n="connectTitle">所有入口，各就其位。</h3>
-            <p data-i18n="connectDesc">
-              将常用站点、服务后台与联系方式集中管理。从观察状态到打开服务，少一次寻找。
-            </p>
-            <div class="service-tiles" aria-hidden="true">
-              <span>⌘ <small>PROFILE</small></span
-              ><span>◈ <small>SERVICES</small></span
-              ><span>↗ <small>CONTACT</small></span>
-            </div>
-          </article>
-          <article class="feature">
-            <div class="feature-top">
-              <span class="feature-icon">◷</span
-              ><span class="mono">01.03 / LIGHTWEIGHT</span>
-            </div>
-            <h3 data-i18n="lightTitle">轻装上阵，持续关注。</h3>
-            <p data-i18n="lightDesc">
-              默认每 5 秒轮询，切到后台自动暂停。Canvas 轻量图表，无前端 CDN
-              依赖，让资源回归你的服务。
-            </p>
-            <div class="feature-caption mono">
-              FLASK + PSUTIL / CANVAS CHARTS
-            </div>
-          </article>
-          <article class="feature feature-wide">
-            <div class="feature-top">
-              <span class="feature-icon">◐</span
-              ><span class="mono">01.04 / PERSONAL</span>
-            </div>
-            <h3 data-i18n="personalTitle">你的设备，你的习惯。</h3>
-            <p data-i18n="personalDesc">
-              手机、平板、电脑，横屏或竖屏。深浅主题、中英切换与独立设置页，让面板融入你的工作方式。
-            </p>
-            <div class="devices" aria-hidden="true">
-              <div class="device-desktop"><span></span></div>
-              <div class="device-tablet"><span></span></div>
-              <div class="device-phone"><span></span></div>
-              <span class="mono">ADAPTS TO YOU.</span>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section id="preview" class="preview-section section">
-        <div class="container">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow mono">
-                <span class="accent">02 /</span> A CLOSER LOOK
-              </p>
-              <h2 data-i18n="previewTitle">让复杂，变得清晰。</h2>
-            </div>
-            <p data-i18n="previewDesc">
-              切换指标，感受信息的秩序。<br />以下为交互示意，并非实时服务器数据。
-            </p>
-          </div>
-          <div class="dashboard">
-            <div class="dashboard-bar">
-              <span class="mono"
-                ><span class="accent">▧</span> CHRONOS
-                <span class="muted">/ PANEL</span></span
-              ><span class="demo-chip" data-i18n="demoLabel"
-                >交互示意 · 非实时数据</span
-              >
-            </div>
-            <div class="dashboard-content">
-              <aside class="dashboard-side">
-                <span class="mono muted">WORKSPACE / 01</span>
-                <h3>Personal<br />server<span class="accent">.</span></h3>
-                <div class="server-info mono">
-                  <span>OS</span><span>Ubuntu 24.04</span><span>CPU</span
-                  ><span>4 vCPU</span><span>RAM</span><span>4 GB</span>
-                </div>
-                <div class="side-note">
-                  <span class="status-dot"></span
-                  ><span data-i18n="demoLocal">本地示意，无需连接服务器</span>
-                </div>
-              </aside>
-              <div class="dashboard-main">
-                <div
-                  class="metric-tabs"
-                  role="tablist"
-                  aria-label="监控指标"
-                  data-label="metrics"
-                >
-                  <button
-                    id="tab-cpu"
-                    role="tab"
-                    aria-selected="true"
-                    aria-controls="metric-panel"
-                    tabindex="0"
-                    data-metric="cpu"
-                  >
-                    CPU</button
-                  ><button
-                    id="tab-memory"
-                    role="tab"
-                    aria-selected="false"
-                    aria-controls="metric-panel"
-                    tabindex="-1"
-                    data-metric="memory"
-                    data-i18n="memory"
-                  >
-                    内存</button
-                  ><button
-                    id="tab-network"
-                    role="tab"
-                    aria-selected="false"
-                    aria-controls="metric-panel"
-                    tabindex="-1"
-                    data-metric="network"
-                    data-i18n="network"
-                  >
-                    网络
-                  </button>
-                </div>
-                <div
-                  id="metric-panel"
-                  role="tabpanel"
-                  aria-labelledby="tab-cpu"
-                  tabindex="0"
-                >
-                  <div class="metric-summary">
-                    <div>
-                      <span id="metric-name" class="muted">CPU 使用率</span>
-                      <div class="metric-value">
-                        <span id="metric-value">24.8</span
-                        ><small id="metric-unit">%</small>
-                      </div>
-                    </div>
-                    <span class="mono metric-caption" data-i18n="history"
-                      >历史趋势 / 示意</span
-                    >
-                  </div>
-                  <div class="main-chart">
-                    <div class="chart-grid" aria-hidden="true">
-                      <span>100</span><span>75</span><span>50</span
-                      ><span>25</span><span>0</span>
-                    </div>
-                    <svg
-                      id="metric-chart"
-                      viewBox="0 0 720 160"
-                      preserveAspectRatio="none"
-                      role="img"
-                      aria-label="CPU 使用率示意曲线"
-                    >
-                      <defs>
-                        <linearGradient
-                          id="chartGradient"
-                          x1="0"
-                          y1="0"
-                          x2="0"
-                          y2="1"
-                        >
-                          <stop stop-color="#ed713d" stop-opacity=".22" />
-                          <stop
-                            offset="1"
-                            stop-color="#ed713d"
-                            stop-opacity="0"
-                          />
-                        </linearGradient>
-                      </defs>
-                      <path id="chart-area" fill="url(#chartGradient)" />
-                      <path id="chart-line" class="chart-stroke" />
-                    </svg>
-                  </div>
-                  <div class="chart-time mono">
-                    <span>−60s</span><span>−30s</span
-                    ><span data-i18n="sample">示意数据</span>
-                  </div>
-                </div>
-                <div class="dashboard-stats">
-                  <div>
-                    <span data-i18n="memory">内存</span
-                    ><strong>1.28 <small>/ 4 GB</small></strong>
-                    <div class="meter"><i style="width: 32%"></i></div>
-                  </div>
-                  <div>
-                    <span data-i18n="storage">存储</span
-                    ><strong>18.6 <small>/ 50 GB</small></strong>
-                    <div class="meter"><i style="width: 37%"></i></div>
-                  </div>
-                  <div>
-                    <span data-i18n="networkDown">网络下行</span
-                    ><strong>2.4 <small>MB/s</small></strong>
-                    <div class="meter"><i style="width: 24%"></i></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="preview-caption">
-            <span class="mono">DESIGNED FOR YOUR DAILY CHECK-IN.</span
-            ><a
-              class="text-link"
-              href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring/tree/main/frontend"
-              ><span data-i18n="exploreInterface">查看实际面板源码</span> ↗</a
-            >
-          </div>
-        </div>
-      </section>
-
-      <section class="section container use-section">
-        <div>
-          <p class="eyebrow mono">
-            <span class="accent">03 /</span> YOUR OWN SPACE
-          </p>
-          <h2 data-i18n="useTitle">为你的那台服务器。</h2>
-          <p class="use-intro" data-i18n="useIntro">
-            一个个人项目，一份清楚的日常概览。为个人服务器、日常自托管和轻量运维而设计。
-          </p>
-          <a
-            href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring#-功能"
-            class="text-link"
-            ><span data-i18n="readDocs">阅读项目文档</span> ↗</a
-          >
-        </div>
-        <div class="use-list">
-          <article>
-            <span class="mono accent">01</span>
-            <div>
-              <h3 data-i18n="use1Title">个人 VPS</h3>
-              <p data-i18n="use1Desc">
-                查看资源趋势与磁盘占用，在日常访问中了解服务器状态。
-              </p>
-            </div>
-            <span aria-hidden="true">↗</span>
-          </article>
-          <article>
-            <span class="mono accent">02</span>
-            <div>
-              <h3 data-i18n="use2Title">自托管工作台</h3>
-              <p data-i18n="use2Desc">
-                把分散的站点和管理入口放在一起，建立自己的服务起点。
-              </p>
-            </div>
-            <span aria-hidden="true">↗</span>
-          </article>
-          <article>
-            <span class="mono accent">03</span>
-            <div>
-              <h3 data-i18n="use3Title">随手查看</h3>
-              <p data-i18n="use3Desc">
-                用手机或平板打开面板，浏览 CPU、内存、网络与存储概况。
-              </p>
-            </div>
-            <span aria-hidden="true">↗</span>
-          </article>
-        </div>
-      </section>
-
-      <section id="start" class="section start-section">
-        <div class="container start-grid">
-          <div>
-            <p class="eyebrow mono">
-              <span class="accent">04 /</span> MAKE IT YOURS
-            </p>
-            <h2 data-i18n="startTitle">从这里，开始掌控。</h2>
-            <p data-i18n="startDesc">
-              克隆仓库，按照文档配置后端与 Nginx。<br />在自己的 Ubuntu / Debian
-              服务器上运行。
-            </p>
             <a
               class="button primary"
-              href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring#-部署ubuntu--debian-服务器"
-              ><span data-i18n="deployGuide">完整部署指南</span> ↗</a
+              href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring#快速开始本地体验"
+              >获取源码 <span>↗</span></a
+            ><a class="button secondary" href="#explore"
+              >看看工作台 <span>↓</span></a
             >
           </div>
-          <div class="install-card">
-            <div class="terminal-bar">
-              <span class="terminal-dots" aria-hidden="true">● ● ●</span
-              ><span class="mono">GETTING STARTED</span
-              ><button id="copy" class="copy-button" data-i18n="copy">
-                复制命令
-              </button>
+          <p class="hero-note">
+            React + Flask + SQLite <i>·</i> 个人登录使用
+            <i>·</i> 数据留在自己的服务器
+          </p>
+        </div>
+        <div class="hero-art" aria-label="虚构工作台界面示意">
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <div class="floating-date">
+            <span>CHRONOS / DAILY VIEW</span><strong>把今天看清楚。</strong
+            ><small>日程 · 设备 · 开源</small>
+          </div>
+          <div class="mini-window">
+            <div class="window-top"><i></i><i></i><i></i></div>
+            <div class="mini-greeting"><span>上午好，朋友。</span></div>
+            <div class="mini-grid">
+              <div class="mini-course">
+                <small>下一门 · 演示数据</small><strong>交互设计基础</strong
+                ><span>10:00–11:30</span><em>示例教学楼 201</em>
+              </div>
+              <div class="mini-device">
+                <small>云服务器</small><strong>12<span>% CPU</span></strong
+                ><svg viewBox="0 0 180 50" aria-hidden="true">
+                  <path
+                    d="M0 36L15 32L30 34L45 21L60 27L75 16L90 23L105 18L120 28L135 17L150 22L165 13L180 17"
+                  />
+                </svg>
+              </div>
+              <div class="mini-project">
+                <span class="status-dot"></span
+                ><strong>工作、学习与自己的项目</strong
+                ><small>留出空间，继续创造。</small>
+              </div>
             </div>
-            <pre
-              tabindex="0"
-            ><code id="install-command"><span class="comment"># 01 / Clone the repository</span>
-git clone https://github.com/Jimmy-xuzimo/Chronos-Monitoring.git
-cd Chronos-Monitoring
-
-<span class="comment"># 02 / Create an isolated Python environment</span>
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r backend/requirements.txt
-
-<span class="comment"># 03 / Test the backend locally on the server</span>
-python3 backend/app.py</code></pre>
-            <p class="install-note" data-i18n="installNote">
-              这是后端启动步骤。完整面板还需按文档部署前端、配置 Nginx
-              反向代理与 systemd 服务；使用虚拟环境时同步调整服务的 Python
-              路径。
-            </p>
+          </div>
+          <div class="art-caption">
+            <span>01 / YOUR OWN CORNER</span
+            ><span>示意界面，不连接真实服务</span>
           </div>
         </div>
-        <div class="container deployment-note">
-          <span class="accent mono">!</span>
-          <p data-i18n="deployNote">
-            正式部署时，请修改默认账号密码并启用 HTTPS。GitHub Pages
-            承载的是此介绍网站；监控面板和 Python 后端需要部署到自己的服务器。
+      </section>
+      <div class="principles wrap">
+        <span><b>01</b> 一眼看到重点</span><span><b>02</b> 后台持续采集</span
+        ><span><b>03</b> 失败保留旧数据</span
+        ><span><b>04</b> 自己部署与保管</span>
+      </div>
+      <section id="explore" class="explore wrap">
+        <div class="section-top">
+          <div>
+            <p class="eyebrow">A WORKSPACE, NOT ANOTHER TAB</p>
+            <h2>从今天出发，<br />随时走进细节。</h2>
+          </div>
+          <p>
+            总览保持简洁，细节留在相应页面。<br />切换下面的模块，探索虚构数据演示。
+          </p>
+        </div>
+        <div class="demo-controls">
+          <div class="demo-tabs" role="tablist" aria-label="演示模块">
+            <button role="tab" aria-selected="true" data-view="overview">
+              总览</button
+            ><button role="tab" aria-selected="false" data-view="calendar">
+              课表</button
+            ><button role="tab" aria-selected="false" data-view="services">
+              设备与服务</button
+            ><button role="tab" aria-selected="false" data-view="github">
+              GitHub</button
+            ><button role="tab" aria-selected="false" data-view="news">
+              资讯
+            </button>
+          </div>
+          <div class="palette-tools" aria-label="演示配色">
+            <button
+              data-palette="iris"
+              aria-label="鸢尾紫"
+              aria-pressed="true"
+            ></button
+            ><button
+              data-palette="mint"
+              aria-label="薄荷绿"
+              aria-pressed="false"
+            ></button
+            ><button
+              data-palette="peach"
+              aria-label="蜜桃橙"
+              aria-pressed="false"
+            ></button
+            ><button
+              data-palette="industrial"
+              aria-label="工业废土"
+              aria-pressed="false"
+            ></button>
+          </div>
+        </div>
+        <div class="demo-frame">
+          <div class="demo-top">
+            <span
+              ><img
+                src="assets/favicon.svg"
+                width="22"
+                height="22"
+                alt=""
+              />我的工作台</span
+            ><span class="demo-label">DEMO · 全部为虚构数据</span>
+          </div>
+          <div
+            id="demo-content"
+            class="demo-content"
+            role="tabpanel"
+            aria-label="总览演示"
+          ></div>
+        </div>
+        <div class="demo-explanation">
+          <span id="demo-index">01 / 05</span>
+          <h3 id="demo-title">把高频信息，放在最容易看到的地方。</h3>
+          <p id="demo-description">
+            今日课程、下一门课的地点、双设备状态与项目动态。手机保留三个重点区域，入口和资讯单独分页。
           </p>
         </div>
       </section>
-
-      <section class="section container faq-section">
-        <div>
-          <p class="eyebrow mono">
-            <span class="accent">05 /</span> GOOD TO KNOW
-          </p>
-          <h2 data-i18n="faqTitle">你可能还想知道。</h2>
+      <section class="features wrap">
+        <p class="eyebrow">THE DETAILS THAT MATTER</p>
+        <div class="feature-row">
+          <span class="feature-number">01 / TIME</span>
+          <h3>课表有变化，<br />显示也应该诚实。</h3>
+          <div>
+            <p>
+              ICS
+              只读订阅支持重复课程、单次调整与取消。来源失败时保留最近成功记录，时间未定的课程不参与倒计时。
+            </p>
+            <small>日 / 周 / 月视图 · 中国时区 · 教师与原始备注</small>
+          </div>
         </div>
-        <div class="faq-list">
-          <details>
-            <summary data-i18n="faq1q">
-              可以直接在 GitHub Pages 上运行监控吗？
-            </summary>
-            <p data-i18n="faq1a">
-              GitHub Pages 仅托管静态介绍网站。实际监控需要在目标服务器上运行
-              Flask 后端，并通过 Nginx 提供前端页面和 API 反向代理。
+        <div class="feature-row">
+          <span class="feature-number">02 / SIGNAL</span>
+          <h3>看见此刻，<br />也看见过去一天。</h3>
+          <div>
+            <p>
+              服务器与 Windows 节点独立保存历史。每 10 秒采样，首页显示最近 24
+              小时曲线；网站探测、证书临期和恢复记录进入站内提醒。
             </p>
-          </details>
-          <details>
-            <summary data-i18n="faq2q">适合什么规模的监控需求？</summary>
-            <p data-i18n="faq2a">
-              CHRONOS
-              面向个人服务器与轻量日常查看。当前项目不提供多节点集中管理、告警编排或企业级可观测平台的完整能力。
+            <small>探测来自部署服务器 · 不冒充多地区监测</small>
+          </div>
+        </div>
+        <div class="feature-row">
+          <span class="feature-number">03 / FOCUS</span>
+          <h3>有用的信息，<br />按自己的习惯归位。</h3>
+          <div>
+            <p>
+              收藏、拖动排序与分组入口；公开仓库、PR 与可读取的 CI；自己的 JSON
+              资讯站按日期和分类归档。
             </p>
-          </details>
-          <details>
-            <summary data-i18n="faq3q">
-              面板如何刷新？会一直占用资源吗？
-            </summary>
-            <p data-i18n="faq3a">
-              默认每 5
-              秒请求一次监控数据，可在设置中调整。页面进入后台时暂停轮询，回到前台立即刷新。实际资源占用取决于服务器配置和使用情况。
-            </p>
-          </details>
-          <details>
-            <summary data-i18n="faq4q">可以修改外观和服务入口吗？</summary>
-            <p data-i18n="faq4a">
-              可以。面板设置页支持深浅主题、中英切换和轮询间隔。常用服务与联系方式可在
-              frontend/js/config.js 中配置。使用与修改说明请参阅仓库 README。
-            </p>
-          </details>
+            <small>未读取的检查如实标注 · 资讯每天 07:30 同步</small>
+          </div>
         </div>
       </section>
-
-      <section class="container final-cta">
-        <div class="cta-mark" aria-hidden="true">↗</div>
-        <p class="eyebrow mono">BUILT SMALL. MADE YOURS.</p>
-        <h2 data-i18n="ctaTitle">让你的服务器，有个自己的主页。</h2>
-        <p data-i18n="ctaDesc">探索源码，部署使用，或参与下一次改进。</p>
-        <div class="cta-actions">
+      <section id="architecture" class="architecture">
+        <div class="wrap architecture-grid">
+          <div>
+            <p class="eyebrow">SMALL PIECES, CLEAR RESPONSIBILITIES</p>
+            <h2>界面负责呈现。<br />采集在后台继续。</h2>
+            <p>
+              浏览器关闭后，独立采集器仍然工作。API 读取缓存与
+              SQLite，不因为多开一个标签页就多采集一遍。
+            </p>
+            <a
+              class="text-link"
+              href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring/blob/main/docs/deployment.md"
+              >阅读部署与维护指南 ↗</a
+            >
+          </div>
+          <div class="architecture-map">
+            <div>
+              <b>01</b><strong>React + TypeScript</strong
+              ><span>静态前端 / Nginx</span>
+            </div>
+            <span class="connector">↓ HTTPS / API</span>
+            <div>
+              <b>02</b><strong>Flask + SQLite</strong
+              ><span>鉴权、缓存与历史</span>
+            </div>
+            <span class="connector">↑ 独立采集 / 主动上报</span>
+            <div class="architecture-bottom">
+              <div>
+                <b>03</b><strong>Collector</strong><span>资源与外部来源</span>
+              </div>
+              <div>
+                <b>04</b><strong>Windows Agent</strong
+                ><span>不开放本机端口</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="start" class="start wrap">
+        <div class="section-top">
+          <div>
+            <p class="eyebrow">MAKE ROOM FOR YOUR EVERYDAY</p>
+            <h2>从自己的服务器开始。</h2>
+          </div>
+          <p>
+            源码、部署模板和示例数据已准备好。<br />个人数据源默认留空，由你决定接入什么。
+          </p>
+        </div>
+        <div class="start-grid">
+          <div class="terminal">
+            <div>
+              <span>QUICK START / 获取源码</span
+              ><button id="copy" aria-label="复制克隆命令">复制</button>
+            </div>
+            <pre><code>git clone https://github.com/Jimmy-xuzimo/Chronos-Monitoring.git
+cd Chronos-Monitoring</code></pre>
+            <small>Python 3.12+ · Node.js 22.12+ · pnpm 11</small>
+          </div>
+          <ol>
+            <li>
+              <span>01</span>
+              <div>
+                <h3>构建与初始化</h3>
+                <p>构建前端，设置自己的初始密码。没有公开默认密码。</p>
+              </div>
+            </li>
+            <li>
+              <span>02</span>
+              <div>
+                <h3>同时运行 API 与采集器</h3>
+                <p>使用同一个持久化数据目录，生产通过 HTTPS 访问。</p>
+              </div>
+            </li>
+            <li>
+              <span>03</span>
+              <div>
+                <h3>接入自己的日常</h3>
+                <p>添加课表、服务、Windows 节点和收藏入口。</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+        <div class="start-bottom">
           <a
             class="button primary"
-            href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring"
-            ><span data-i18n="ctaGithub">在 GitHub 上探索</span> ↗</a
-          ><a
-            class="text-link"
-            href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring/issues"
-            ><span data-i18n="feedback">反馈与建议</span> ↗</a
+            href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring#readme"
+            >打开完整 README ↗</a
           >
+          <p>
+            介绍页是静态演示，不是公开的监控后台。<br />个人使用 · 日历只读 ·
+            站内提醒 · 不提供服务器远程控制
+          </p>
         </div>
       </section>
     </main>
-    <footer class="container footer">
-      <a class="brand" href="#">CHRONOS<span class="brand-dot">/</span></a>
-      <p data-i18n="footerCredit">由 Zimo Xu 构建 · 为个人服务器而设计</p>
+    <footer class="wrap">
+      <a class="wordmark" href="#"
+        >CHRONOS<span>留一张桌面，给自己的日常。</span></a
+      >
       <div>
-        <a
-          href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring#-许可"
-          data-i18n="usage"
-          >使用与修改说明</a
-        ><a href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring"
-          >GitHub ↗</a
+        <a href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring">源码 ↗</a
+        ><a
+          href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring/blob/main/docs/security.md"
+          >安全与隐私 ↗</a
+        ><a href="https://github.com/Jimmy-xuzimo/Chronos-Monitoring/issues"
+          >反馈 ↗</a
         >
       </div>
-      <span class="footer-end mono">LESS NOISE. MORE CLARITY.</span>
+      <p>公开版本仅包含通用源码与虚构示例。使用许可请查看仓库说明。</p>
     </footer>
-    <div
-      class="sr-only"
-      id="announcement"
-      role="status"
-      aria-live="polite"
-    ></div>
+    <script src="app.js"></script>
   </body>
 </html>
