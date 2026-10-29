@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import time
+from zoneinfo import ZoneInfo
 from urllib.parse import urljoin,urlsplit,quote
 from bs4 import BeautifulSoup
 from net import fetch, get_json, certificate, SourceError
@@ -121,7 +122,7 @@ def news(cfg):
     index,_=get_json(urljoin(base,'index.json'))
     dates=sorted({d for d in index.get('dates',[]) if re.fullmatch(r'\d{4}-\d{2}-\d{2}',d)},reverse=True)
     if not dates:raise SourceError('资讯索引没有有效日期')
-    cutoff=(dt.date.today()-dt.timedelta(days=cfg.get('retention',{}).get('news_days',90))).isoformat()
+    cutoff=(dt.datetime.now(ZoneInfo('Asia/Shanghai')).date()-dt.timedelta(days=cfg.get('retention',{}).get('news_days',90))).isoformat()
     dates=[d for d in dates if d>=cutoff][:366]
     def edition(day):
         with db() as c:old=c.execute('SELECT data FROM news_editions WHERE day=?',(day,)).fetchone()

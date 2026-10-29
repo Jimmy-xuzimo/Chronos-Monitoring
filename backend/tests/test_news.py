@@ -4,9 +4,10 @@ from integrations import news
 from store import cache,db
 from settings import load
 from app import app
+from scheduling import daily_slot
 
 def test_news_editions_and_categories():
-    today=dt.date.today().isoformat();yesterday=(dt.date.today()-dt.timedelta(days=1)).isoformat()
+    day=daily_slot().date();today=day.isoformat();yesterday=(day-dt.timedelta(days=1)).isoformat()
     def fetch(url,*args):
         if url.endswith('index.json'):return {'dates':[today,yesterday]},{}
         day=today if url.endswith(today+'.json') else yesterday
