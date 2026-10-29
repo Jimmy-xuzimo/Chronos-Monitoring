@@ -1405,3 +1405,6 @@ footer > p {
     top: -42px;
   }
 }
+
+/* Decorative orbits must not create a horizontal scrollbar. */
+body{overflow-x:clip}.hero-copy{min-width:0}
