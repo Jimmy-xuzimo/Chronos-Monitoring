@@ -1,7 +1,7 @@
 plugins { id("com.android.library") }
 android {
     namespace="com.qmdeve.liquidglass"
-    compileSdk=37
+    compileSdk = 37
     defaultConfig { minSdk=24 }
     compileOptions { sourceCompatibility=JavaVersion.VERSION_21;targetCompatibility=JavaVersion.VERSION_21 }
 }

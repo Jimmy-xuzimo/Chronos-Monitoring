@@ -29,7 +29,7 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: android-actions/setup-android@v4
-      - run: sdkmanager 'platforms;android-37' 'build-tools;36.0.0'
+      - run: sdkmanager 'platforms;android-37.0' 'build-tools;36.0.0'
       - name: Compile and lint development APK
         working-directory: clients/android
         run: bash gradlew :app:assembleDebug :app:lintDebug --no-daemon

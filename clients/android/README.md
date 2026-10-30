@@ -38,7 +38,7 @@
 
 ## 构建
 
-需要 JDK 21+（本次使用 Android Studio 的 JBR）、Android SDK 37、Build Tools 36.0.0。目标版本 Android 16 / API 36，最低 Android 8 / API 26。Gradle 9.6.0、AGP 9.4.0、Compose BOM 2026.09.00 已固定。
+需要 JDK 21+（本次使用 Android Studio 的 JBR）、Android SDK Platform 37.0（sdkmanager 包名 `platforms;android-37.0`）、Build Tools 36.0.0。目标版本 Android 16 / API 36，最低 Android 8 / API 26。Gradle 9.6.0、AGP 9.4.0、Compose BOM 2026.09.00 已固定。
 
 ```powershell
 $env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
