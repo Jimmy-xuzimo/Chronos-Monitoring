@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:label="我的工作台" android:icon="@drawable/ic_logo_ocean" android:roundIcon="@drawable/ic_logo_ocean" android:theme="@style/Theme.Workbench" android:allowBackup="false" android:fullBackupContent="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
+        <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+
+        </activity>
+        <activity-alias android:name="top.xuzimo.workbench.LauncherOcean" android:targetActivity=".MainActivity" android:enabled="true" android:exported="true" android:icon="@drawable/ic_logo_ocean" android:label="我的工作台"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity-alias>
+        <activity-alias android:name="top.xuzimo.workbench.LauncherIce" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true" android:icon="@drawable/ic_logo_ice" android:label="我的工作台"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity-alias>
+        <activity-alias android:name="top.xuzimo.workbench.LauncherAurora" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true" android:icon="@drawable/ic_logo_aurora" android:label="我的工作台"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity-alias>
+        <activity-alias android:name="top.xuzimo.workbench.LauncherGraphite" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true" android:icon="@drawable/ic_logo_graphite" android:label="我的工作台"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity-alias>
+        <activity-alias android:name="top.xuzimo.workbench.LauncherIndustrial" android:targetActivity=".MainActivity" android:enabled="false" android:exported="true" android:icon="@drawable/ic_logo_industrial" android:label="我的工作台"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity-alias>
+    </application>
+</manifest>

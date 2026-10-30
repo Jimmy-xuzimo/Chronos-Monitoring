@@ -13,6 +13,7 @@ from metrics import Monitor
 from integrations import calendars,services,github,news,network,run_source
 from nodes import check_nodes
 from scheduling import daily_slot,weekly_slot
+from weather import weather
 
 def main():
     # OS lock prevents duplicate collection even if launched twice.
@@ -27,7 +28,7 @@ def main():
     stop=threading.Event()
     for sig in (signal.SIGINT,signal.SIGTERM):signal.signal(sig,lambda *_:stop.set())
     monitor=Monitor();pool=concurrent.futures.ThreadPoolExecutor(max_workers=4)
-    jobs={'calendars':(900,calendars),'services':(600,services),'github':(900,github),'network':(300,network)}
+    jobs={'calendars':(900,calendars),'services':(600,services),'github':(900,github),'network':(300,network),'weather':(600,weather)}
     due={k:0 for k in jobs};futures={};last_sample=0;last_clean=0;signature=None;fingerprints={}
     try:
         while not stop.is_set():
@@ -35,7 +36,7 @@ def main():
             current=(DATA/'config.json').stat().st_mtime_ns
             if current!=signature:
                 signature=current
-                fields={'calendars':['calendars','timezone'],'services':['services'],'github':['github_user','github_token','pinned_repos'],'network':[]}
+                fields={'calendars':['calendars','timezone'],'services':['services'],'github':['github_user','github_token','pinned_repos'],'network':[],'weather':['weather_location']}
                 for name,keys in fields.items():
                     value=json.dumps({k:cfg.get(k) for k in keys},sort_keys=True)
                     if value!=fingerprints.get(name):due[name]=0;fingerprints[name]=value

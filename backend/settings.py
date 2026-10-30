@@ -13,6 +13,8 @@ from store import DATA
 LOCK = threading.RLock()
 FILE = DATA / 'config.json'
 DEFAULT = {
+    'android_appearance':{'style':'ocean','theme':'device'},
+    'weather_location':{'station_id':'58238','name':'南京'},
     'timezone': 'Asia/Shanghai', 'semester_start': '2026-08-31', 'semester_weeks': 20,
     'github_user': '', 'github_token': '', 'pinned_repos': [],
     'news_url': '',
@@ -75,7 +77,7 @@ def update(payload):
     from datetime import date
     import re
     cfg=load()
-    for key in ['timezone','semester_start','semester_weeks','github_user','pinned_repos','news_url','entries','services','retention']:
+    for key in ['timezone','semester_start','semester_weeks','github_user','pinned_repos','news_url','entries','services','retention','android_appearance','weather_location']:
         if key in payload: cfg[key]=payload[key]
     ZoneInfo(cfg['timezone']); date.fromisoformat(cfg['semester_start'])
     if not isinstance(cfg['semester_weeks'],int) or not 1<=cfg['semester_weeks']<=52: raise ValueError('学期周数须为 1–52')
@@ -117,5 +119,9 @@ def update(payload):
     for k,(a,b) in limits.items():
         v=cfg['retention'].get(k)
         if type(v)!=int or not a<=v<=b:raise ValueError('保留时限无效')
+    loc=cfg['weather_location']
+    if not isinstance(loc,dict) or set(loc)!={'station_id','name'} or not isinstance(loc['station_id'],str) or not re.fullmatch('[0-9]{5}',loc['station_id']) or not isinstance(loc['name'],str) or not 1<=len(loc['name'])<=80:raise ValueError('天气地点无效')
+    appearance=cfg['android_appearance']
+    if not isinstance(appearance,dict) or set(appearance)!={'style','theme'} or appearance['style'] not in ['ocean','ice','aurora','graphite','industrial'] or appearance['theme'] not in ['device','light','dark']:raise ValueError('Invalid Android appearance')
     save(cfg)
     return public(cfg)

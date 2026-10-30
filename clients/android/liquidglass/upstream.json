@@ -1,0 +1,10 @@
+{
+  "project": "QmDeve/AndroidLiquidGlassView",
+  "version": "1.1.0",
+  "url": "https://liquidglass.qmdeve.com/zh/",
+  "sha256": {
+    "-sources.jar": "06cfd4d08122d93c5d2716a54f83065f9efd57d3dfafec6c37c362c15e5e875a",
+    ".aar": "a57eafe30315c5099e6c029110c759cc6d3cc25fa26ed620b937dab40320d0a0"
+  },
+  "patch": "Guard deferred parameter updates and ensureGlass after detach; renderer and AGSL unchanged."
+}

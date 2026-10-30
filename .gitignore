@@ -25,6 +25,20 @@ frontend/dist/
 *.zip
 *.tar.gz
 coverage/
+**/.gradle/
+**/.kotlin/
+**/build/
+**/local.properties
+**/signing.properties
+*.jks
+*.keystore
+*.pfx
+*.p12
+*.apk
+*.aab
+*.exe
+*.bin
+.android-fixture-data/
 
 # Fictional source examples, never runtime state
 !examples/news/data/

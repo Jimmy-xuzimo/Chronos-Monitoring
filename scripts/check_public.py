@@ -18,10 +18,10 @@ for name in filter(None, names):
     if not path.is_file():
         continue
     parts = Path(name).parts
-    if (path.name in {'config.json', 'agent-config.json', '.env', 'status.json'}
+    if (path.name in {'config.json', 'agent-config.json', '.env', 'status.json', 'local.properties', 'signing.properties', 'credentials.bin'}
             or any(p in {'node_modules', '.venv'} for p in parts)
             or ('data' in parts and parts[:3] != ('examples', 'news', 'data'))
-            or path.suffix in {'.sqlite', '.sqlite3', '.db', '.log', '.zip', '.gz'}):
+            or path.suffix in {'.sqlite', '.sqlite3', '.db', '.log', '.zip', '.gz', '.jks', '.keystore', '.pfx', '.p12', '.apk', '.aab', '.exe', '.bin'}):
         failures.append(name + ': runtime artifact')
     if any(pattern.search(path.read_bytes()) for pattern in patterns):
         failures.append(name + ': possible credential')

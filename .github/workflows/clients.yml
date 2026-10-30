@@ -1,0 +1,39 @@
+name: Build native clients
+on:
+  push:
+    branches: [main]
+    paths: ['clients/**', '.github/workflows/clients.yml']
+  pull_request:
+    paths: ['clients/**', '.github/workflows/clients.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile native agent and installer
+        shell: pwsh
+        run: ./clients/windows-agent/build.ps1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-agent-installer
+          path: clients/windows-agent/WorkbenchAgentSetup.exe
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v4
+      - run: sdkmanager 'platforms;android-37' 'build-tools;36.0.0'
+      - name: Compile and lint development APK
+        working-directory: clients/android
+        run: bash gradlew :app:assembleDebug :app:lintDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-development-apk
+          path: clients/android/app/build/outputs/apk/debug/app-debug.apk

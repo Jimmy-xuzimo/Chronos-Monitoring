@@ -33,9 +33,20 @@
 
 ### 边界
 
-面向个人登录使用；不是多用户监控平台。课表只读，不回写日历；没有服务器命令执行、重启或远程控制。告警只在站内展示，不发送邮件或推送。Windows Agent 仅主动上报，未提供一键安装器或计划任务自动配置界面。
+面向个人登录使用；不是多用户监控平台。课表只读，不回写日历；没有服务器命令执行、重启或远程控制。告警只在站内展示，不发送邮件或推送。Windows Agent 仅主动上报；可使用带配置界面、托盘和登录自启动的原生安装版，也保留 Python 脚本接入方式。
 
 网站可用性来自**面板所在服务器探测**，不代表多地区或所有用户的访问情况。GitHub 状态可能未读取、受限或限流；未读取的检查不会显示为成功。
+
+## 原生客户端
+
+| 客户端 | 使用与构建 | 当前版本 |
+| --- | --- | --- |
+| Android | [Kotlin / Compose 安卓应用](clients/android/README.md)，连接同一 HTTPS 后端；五套深浅风格、液态玻璃、天气、课表、双设备与设置 | 1.0.1 |
+| Windows | [原生电脑采集器](clients/windows-agent/README.md)，安装版、配置界面、托盘、登录自启动、DPAPI 加密凭据 | 1.0.0 |
+
+[下载安装包](https://github.com/Jimmy-xuzimo/Chronos-Monitoring/releases)。公开包默认连接 `https://panel.example.com`，首次使用请填写自己的服务器；没有内置作者账号、Token 或数据。Android 登录凭据与会话以 Keystore 加密保存在手机，Windows 凭据以 DPAPI 加密保存在电脑；业务数据继续在服务器维护。
+
+安卓需要同次更新的天气与外观配置后端接口。天气默认南京，可在设置检索并更改，服务器读取中国气象局网站数据并缓存；来源失效时保留旧数据。完整液态玻璃效果需要 Android 13+，Android 8—12 使用半透明降级背板。
 
 ## 快速开始：本地体验
 
@@ -117,6 +128,7 @@ Windows Agent ──主动 HTTPS 上报── /api/agent/report
 ```
 
 ```text
+clients/       Android 原生客户端与 Windows 安装版采集器
 backend/       Flask API、采集器、Windows Agent、集成与测试
 frontend/      React / TypeScript / Vite 工作台源码
 config/        Nginx、systemd 示例（专用 chronos 用户）

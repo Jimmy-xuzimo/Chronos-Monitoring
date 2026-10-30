@@ -108,7 +108,23 @@ def overview():
     node=request.args.get('node','server')
     if node!='server' and node not in [a['id'] for a in cfg.get('agents',[])]:return jsonify(message='节点不存在'),404
     selected=source('stats' if node=='server' else 'node:'+node,35 if node=='server' else 45)
-    return jsonify(stats=selected,collector=source('collector',35),node_id=node,nodes=list_nodes(cfg),calendar=calendar_data(),services=service_data(),github=source('github',2100),news=source('news',100000),alerts=alerts(),entries=cfg['entries'],timezone=cfg['timezone'],server_time=time.time())
+    return jsonify(stats=selected,collector=source('collector',35),node_id=node,nodes=list_nodes(cfg),calendar=calendar_data(),services=service_data(),github=source('github',2100),news=source('news',100000),weather=weather_source(cfg),alerts=alerts(),entries=cfg['entries'],timezone=cfg['timezone'],server_time=time.time())
+
+def weather_source(cfg):
+    from weather import key,location
+    return {**source(key(cfg),1500),'location':location(cfg)}
+
+@app.get('/api/weather/locations')
+@authenticated
+def weather_locations():
+    from weather import search_locations
+    try:return jsonify(items=search_locations(request.args.get('q','')))
+    except ValueError:return jsonify(message='请输入有效的城市或区县名称'),400
+    except Exception:return jsonify(message='天气城市检索暂时不可用，请稍后重试'),502
+
+@app.get('/api/weather')
+@authenticated
+def weather_data():return jsonify(weather_source(load()))
 
 @app.get('/api/stats')
 @authenticated
